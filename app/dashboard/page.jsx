@@ -45,6 +45,8 @@ export default function DashboardPage() {
     const timestamps = data.map(item => item['123hello']);
     const temperatures = data.map(item => item.temperature);
     const humidities = data.map(item => item.humidity);
+    const CO2 = data.map(item => item.CO2);
+    const RO3 = data.map(item => item.RO3);
 
     if (window.myChart) window.myChart.destroy();
 
@@ -64,6 +66,22 @@ export default function DashboardPage() {
           {
             label: 'Humidity (%)',
             data: humidities,
+            borderColor: 'rgba(54, 162, 235, 1)',
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            fill: false,
+            tension: 0.1,
+          },
+          {
+            label: 'CO2 (ppm)',
+            data: CO2,
+            borderColor: 'rgba(255, 99, 132, 1)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            fill: false,
+            tension: 0.1,
+          },
+          {
+            label: 'RO3 (%)',
+            data: RO3,
             borderColor: 'rgba(54, 162, 235, 1)',
             backgroundColor: 'rgba(54, 162, 235, 0.2)',
             fill: false,
