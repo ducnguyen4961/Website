@@ -1,0 +1,174 @@
+"use client";
+
+import React, { useState } from "react";
+import {
+  CognitoUser,
+  AuthenticationDetails,
+  CognitoUserPool,
+} from "amazon-cognito-identity-js";
+import { useRouter } from "next/navigation";
+import NewPasswordForm from "@/components/NewPasswordForm";
+import "./login.css";
+
+const poolData = {
+  UserPoolId: "ap-northeast-1_5RFZ7tKmp",
+  ClientId: "5eid7801fqgv7qu4pjdc7s4pm1",
+};
+
+const userPool = new CognitoUserPool(poolData);
+
+export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [showNewPasswordForm, setShowNewPasswordForm] = useState(false);
+  const [challengeData, setChallengeData] = useState(null);
+  const [mfaCode, setMfaCode] = useState("");
+  const [showMfaInput, setShowMfaInput] = useState(false);
+  const [cognitoUser, setCognitoUser] = useState(null);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    setError("");
+
+    const authenticationDetails = new AuthenticationDetails({
+      Username: email,
+      Password: password,
+    });
+
+    const user = new CognitoUser({
+      Username: email,
+      Pool: userPool,
+    });
+
+    setCognitoUser(user);
+
+    user.authenticateUser(authenticationDetails, {
+      onSuccess: (result) => {
+        console.log("Login success:", result);
+        localStorage.setItem("userEmail", email);
+        router.push("/dashboard");
+      },
+      onFailure: (err) => {
+        console.error("Login error:", err);
+        setError(err.message || "Login failed");
+      },
+      newPasswordRequired: (userAttributes) => {
+        const cleanAttributes = { ...userAttributes };
+        delete cleanAttributes.email;
+        delete cleanAttributes.email_verified;
+        delete cleanAttributes.phone_number;
+        delete cleanAttributes.phone_number_verified;
+        delete cleanAttributes.sub;
+
+        setChallengeData({
+          cognitoUser: user,
+          userAttributes: cleanAttributes,
+        });
+        setShowNewPasswordForm(true);
+      },
+      totpRequired: () => {
+        setShowMfaInput(true);
+      },
+      mfaRequired: () => {
+        setShowMfaInput(true);
+      },
+    });
+  };
+
+  const handleSubmitMfaCode = () => {
+    if (cognitoUser && mfaCode) {
+      cognitoUser.sendMFACode(
+        mfaCode,
+        {
+          onSuccess: (result) => {
+            console.log("MFA success:", result);
+            localStorage.setItem("userEmail", email);
+            router.push("/");
+          },
+          onFailure: (err) => {
+            console.error("MFA error:", err);
+            setError(err.message || "MFA failed");
+          },
+        },
+        "SOFTWARE_TOKEN_MFA"
+      );
+    }
+  };
+
+  if (showNewPasswordForm) {
+    return (
+      <NewPasswordForm
+        cognitoUser={challengeData.cognitoUser}
+        userAttributes={challengeData.userAttributes}
+        onSuccess={(res) => {
+          console.log("Password changed successfully", res);
+          localStorage.setItem("userEmail", email);
+          router.push("/");
+        }}
+        onFailure={(err) => {
+          console.error("Password change failed", err);
+        }}
+      />
+    );
+  }
+
+  return (
+    <div className="login-container">
+      <div className="login-box">
+        <h1>Login</h1>
+
+        <form className="login-form" onSubmit={handleLogin}>
+          <div>
+            <label>Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <label>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          {showMfaInput && (
+            <div>
+              <label>Enter MFA Code</label>
+              <input
+                type="text"
+                value={mfaCode}
+                onChange={(e) => setMfaCode(e.target.value)}
+                placeholder="6-digit code"
+                required
+              />
+              <button type="button" onClick={handleSubmitMfaCode}>
+                Submit MFA Code
+              </button>
+            </div>
+          )}
+
+          {error && <p style={{ color: "red" }}>{error}</p>}
+
+          <button type="submit">Login</button>
+
+          <div className="extra-links">
+            <div className="forgot-password">
+              <a href="/forgot-password">Forgot password?</a>
+            </div>
+            <div className="signin">
+              New user? <a href="/signup">Sign up</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

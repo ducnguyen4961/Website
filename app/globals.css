@@ -1,0 +1,162 @@
+/* app/globals.css */
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.navbar {
+  display: flex;
+  align-items: center;
+  background-color: #222;
+  color: white;
+  padding: 10px 20px;
+}
+
+/* Logo nằm bên trái */
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo img {
+  height: 120px;
+  margin-right: 40px;
+}
+
+/* Right-link nằm ngay sau logo */
+.right-link {
+  display: flex;
+  gap: 15px;
+  margin-left: 20px;
+  cursor: pointer;
+}
+.right-link a.home-btn:hover {
+  text-decoration: underline;
+}
+.right-link a.products-btn:hover {
+  text-decoration: underline;
+}
+.right-link a.about-btn:hover {
+  text-decoration: underline;
+}
+.right-link a.contact-btn:hover {
+  text-decoration: underline;
+}
+
+
+/* Left-link đẩy về cuối cùng bên phải */
+.left-link {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+  cursor: underline;
+}
+
+/* Link style */
+.navbar a {
+  color: white;
+  text-decoration: none;
+  padding: 5px 10px;
+}
+
+.navbar a.login-btn {
+  border: 1px solid white;
+  border-radius: 4px;
+}
+.login-btn:hover {
+  background-color: #d32f2f; /* Màu khi hover */
+}
+
+.navbar a.signup-btn {
+  background-color: white;
+  color: #222;
+  border-radius: 4px;
+}
+.navbar a.signup-btn:hover {
+  background-color: #554d67;
+  color: white;
+}
+
+.logout-btn {
+  padding: 5px 13px;       /* Điều chỉnh khoảng cách trong nút */
+  font-size: 16px !important;         /* Cỡ chữ */
+  border: none;            /* Bỏ viền mặc định */
+  border-radius: 4px;      /* Bo góc */
+  background-color: #f44336; /* Màu nền đỏ */
+  color: white;            /* Màu chữ */
+  cursor: pointer;         /* Con trỏ khi hover */
+  margin-left: 10px;       /* Cách bên trái một chút */
+}
+
+.logout-btn:hover {
+  background-color: #d32f2f; /* Màu khi hover */
+}
+
+
+.left-link a.dashboard-btn {
+  background-color: white;
+  color: #ff0000;
+  border-radius: 4px;
+}
+.left-link a.dashboard-btn:hover {
+  background-color: #d32f2f; /* Màu khi hover */
+  color: white;
+}
+
+  
+.nav-links a:hover {
+  text-decoration: underline;
+}
+.profile-dropdown {
+  position: relative;
+  /*bottom: -5px;*/ 
+  display: inline-block;
+}
+
+.profile-btn {
+  background-color: transparent;
+  border: none;
+  position: relative;
+  bottom: -5px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+.profile-btn:hover {
+  text-decoration: underline;
+}
+
+.dropdown-content {
+  position: absolute;
+  background-color: white;
+  color: black;
+  min-width: 160px;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+  z-index: 100;
+  right: 0;
+}
+
+.dropdown-content p {
+  margin: 0 0 10px 0;
+}
+
+.dropdown-content a, .dropdown-content button {
+  display: block;
+  background: none;
+  border: none;
+  padding: 5px 0;
+  text-align: left;
+  width: 100%;
+  font-size: 16;
+  cursor: pointer;
+  text-decoration: none;
+  color: black;
+}
+
+.dropdown-content a:hover,
+.dropdown-content button:hover {
+  text-decoration: underline;
+}
