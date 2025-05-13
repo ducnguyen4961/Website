@@ -2,7 +2,6 @@
 import './globals.css';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Account } from '@/components/Accounts';
 
 
 export default function RootLayout({ children }) {
@@ -23,8 +22,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ja">
       <body>
-        <Account>
-          <header className="navbar">
+        <header className="navbar">
             <div className="logo">
               <img src="/images/logocty.png" alt="Logo" />
             </div>
@@ -64,8 +62,7 @@ export default function RootLayout({ children }) {
               )}
             </div>
           </header>
-          <main>{children}</main>
-        </Account>
+          <main>{children}</main>     
       </body>
     </html>
   );

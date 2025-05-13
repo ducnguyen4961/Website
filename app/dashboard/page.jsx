@@ -41,12 +41,18 @@ export default function DashboardPage() {
   };
 
   const renderChart = (data) => {
+    const timestamps = data.map(item => {
+    const raw = item['timestamp']; 
+    return raw.replace("T", " ");
+    });
+
     const ctx = document.getElementById('dataChart').getContext('2d');
-    const timestamps = data.map(item => item['123hello']);
     const temperatures = data.map(item => item.temperature);
     const humidities = data.map(item => item.humidity);
     const CO2 = data.map(item => item.CO2);
     const RO3 = data.map(item => item.RO3);
+
+    console.log(timestamps);
 
     if (window.myChart) window.myChart.destroy();
 
@@ -120,7 +126,7 @@ export default function DashboardPage() {
     });
   };
 
-  const columnsOrder = ['123hello', 'hello123', 'status', 'temperature', 'humidity', 'CO2', 'RO3', 'RO4'];
+  const columnsOrder = ['house_device', 'timestamp', 'status', 'temperature', 'humidity', 'CO2', 'RO3', 'RO4'];
 
   return (
     <div className="fetch-data">
@@ -133,24 +139,33 @@ export default function DashboardPage() {
         <button type="submit">Fetch Data</button>
       </form>
 
-      <table>
-        <thead>
-          <tr>
-            {columnsOrder.map((col) => (
-              <th key={col}>{col}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.filter(item => !houseId || item.house_id === houseId).map((item, index) => (
+      <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #ccc' }}>
+        <table>
+          <thead>
+            <tr>
+              {columnsOrder.map((col) => (
+                <th key={col}>{col}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data
+            .filter((item) => !houseId || item.house_device.startsWith(houseId))
+            .map((item, index) => (
             <tr key={index}>
               {columnsOrder.map((col) => (
-                <td key={col}>{item[col] !== undefined ? item[col] : '-'}</td>
+                <td key={col}>
+                  {col === 'timestamp' && item[col]
+                  ? item[col].replace("T", " ")
+                  : item[col] !== undefined ? item[col] : '-'}
+                </td>
               ))}
             </tr>
           ))}
-        </tbody>
+          </tbody>
+
       </table>
+      </div>
 
       <canvas id="dataChart" width="1000" height="400"></canvas>
     </div>

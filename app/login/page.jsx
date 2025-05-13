@@ -48,7 +48,7 @@ export default function LoginPage() {
       onSuccess: (result) => {
         console.log("Login success:", result);
         localStorage.setItem("userEmail", email);
-        router.push("/dashboard");
+        router.push("/dashboard ");
       },
       onFailure: (err) => {
         console.error("Login error:", err);
