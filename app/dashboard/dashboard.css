@@ -23,8 +23,6 @@ input,
   font-size: 14px;
 }
 
-/* ===== Bảng và vùng chứa bảng ===== */
-
 .table-container {
   max-height: 300px;
   overflow-y: auto;
@@ -58,8 +56,6 @@ th {
   z-index: 2;
 }
 
-/* ===== Cố định độ rộng cột ===== */
-
 th:nth-child(1), td:nth-child(1) { width: 150px; } /* house_device */
 th:nth-child(2), td:nth-child(2) { width: 180px; } /* timestamp */
 th:nth-child(3), td:nth-child(3),
@@ -75,7 +71,6 @@ tr:hover {
   background-color: #f1f1f1;
 }
 
-/* ===== Canvas biểu đồ ===== */
 canvas {
   margin-top: 40px;
 }
