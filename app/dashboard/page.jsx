@@ -41,18 +41,54 @@ export default function DashboardPage() {
   };
 
   const renderChart = (data) => {
+  setTimeout(() => {
+    const canvas = document.getElementById('dataChart');
+    if (!canvas) {
+      console.error('Canvas not found');
+      return;
+    }
+
+    const ctx = canvas.getContext('2d');
+
     const timestamps = data.map(item => {
-    const raw = item['timestamp']; 
-    return raw.replace("T", " ");
+      const raw = item['timestamp'];
+      return raw.replace("T", " ").replace(/#\w+$/, '');
     });
 
-    const ctx = document.getElementById('dataChart').getContext('2d');
-    const temperatures = data.map(item => item.temperature);
-    const humidities = data.map(item => item.humidity);
-    const CO2 = data.map(item => item.CO2);
-    const RO3 = data.map(item => item.RO3);
+    const temperatures = data.map(item => {
+      if ('samples' in item && item.samples) {
+        return item.total_temperature / item.samples;
+      }
+      return item.temperature || null;
+    });
 
-    console.log(timestamps);
+    const humidities = data.map(item => {
+      if ('samples' in item && item.samples) {
+        return item.total_humidity / item.samples;
+      }
+      return item.humidity || null;
+    });
+
+    const CO2 = data.map(item => {
+      if ('samples' in item && item.samples) {
+        return item.total_CO2 / item.samples;
+      }
+      return item.CO2 || null;
+    });
+
+    const RO3 = data.map(item => {
+      if ('samples' in item && item.samples) {
+        return item.total_RO3 / item.samples;
+      }
+      return item.RO3 || null;
+    });
+
+    const RO4 = data.map(item => {
+      if ('samples' in item && item.samples) {
+        return item.total_RO4 / item.samples;
+      }
+      return item.RO4 || null;
+    });
 
     if (window.myChart) window.myChart.destroy();
 
@@ -80,19 +116,27 @@ export default function DashboardPage() {
           {
             label: 'CO2 (ppm)',
             data: CO2,
-            borderColor: 'rgba(255, 99, 132, 1)',
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
             fill: false,
             tension: 0.1,
           },
           {
             label: 'RO3 (%)',
             data: RO3,
-            borderColor: 'rgba(54, 162, 235, 1)',
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(153, 102, 255, 1)',
+            backgroundColor: 'rgba(153, 102, 255, 0.2)',
             fill: false,
             tension: 0.1,
           },
+          {
+            label: 'RO4 (%)',
+            data: RO4,
+            borderColor: 'rgba(255, 159, 64, 1)',
+            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+            fill: false,
+            tension: 0.1,
+          }
         ],
       },
       options: {
@@ -105,7 +149,7 @@ export default function DashboardPage() {
         plugins: {
           title: {
             display: true,
-            text: 'Temperature and Humidity Over Time',
+            text: 'Sensor Data Over Time',
           },
         },
         scales: {
@@ -124,50 +168,116 @@ export default function DashboardPage() {
         },
       },
     });
+  }, 0);
+};
+
+
+  const columnsOrder = [
+  'house_device',
+  'timestamp',
+  'temperature',
+  'humidity',
+  'CO2',
+  'RO3',
+  'RO4',
+  'status'
+];
+
+const thresholds = {
+  temperature: { min: 20, max: 30 },
+  humidity: { min: 40, max: 70 },
+  CO2: { min: 50, max: 70 },
+  RO3: { min: 30, max: 50 },
+  RO4: { min: 35, max: 50 }
+};
+
+const fieldLabels = {
+  temperature: '温度',
+  humidity: '湿度',
+  CO2: 'CO2',
+  RO3: 'RO3',
+  RO4: 'RO4'
+};
+
+function evaluateStatus(item) {
+  const avg = (field) => item.samples ? item[`total_${field}`] / item.samples : null;
+
+  const check = (val, { min, max }) => {
+    if (val == null) return 'N/A';
+    if (val < min) return 'L';
+    if (val > max) return 'H';
+    return 'Good';
   };
 
-  const columnsOrder = ['house_device', 'timestamp', 'status', 'temperature', 'humidity', 'CO2', 'RO3', 'RO4'];
+  const results = [];
 
-  return (
-    <div className="fetch-data">
-      <h1>🌱 IoT Greenhouse Monitoring Dashboard 🌱</h1>
-      <form onSubmit={fetchData} id="filterForm">
-        <input type="text" value={houseId} onChange={(e) => setHouseId(e.target.value)} placeholder="House ID (optional)" />
-        <input type="text" value={deviceId} onChange={(e) => setDeviceId(e.target.value)} placeholder="Device ID (required)" required />
-        <input type="datetime-local" value={startTimestamp} onChange={(e) => setStartTimestamp(e.target.value)} required />
-        <input type="datetime-local" value={endTimestamp} onChange={(e) => setEndTimestamp(e.target.value)} required />
-        <button type="submit">Fetch Data</button>
-      </form>
+  for (const field of Object.keys(thresholds)) {
+    const value = avg(field);
+    const level = check(value, thresholds[field]);
+    if (level !== 'Good') {
+      const label = fieldLabels[field] || field;
+      results.push(`${label}:${level}`);
+    }
+  }
 
-      <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #ccc' }}>
-        <table>
-          <thead>
-            <tr>
-              {columnsOrder.map((col) => (
-                <th key={col}>{col}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {data
+  return results.length > 0 ? results.join(', ') : 'Good';
+}
+
+
+const isAggregated = data.length > 0 && 'samples' in data[0];
+
+return (
+  <div className="fetch-data">
+    <h1>🌱 IoT Greenhouse Monitoring Dashboard 🌱</h1>
+    <form onSubmit={fetchData} id="filterForm">
+      <input type="text" value={houseId} onChange={(e) => setHouseId(e.target.value)} placeholder="House ID (optional)" />
+      <input type="text" value={deviceId} onChange={(e) => setDeviceId(e.target.value)} placeholder="Device ID (required)" required />
+      <input type="datetime-local" value={startTimestamp} onChange={(e) => setStartTimestamp(e.target.value)} required />
+      <input type="datetime-local" value={endTimestamp} onChange={(e) => setEndTimestamp(e.target.value)} required />
+      <button type="submit">Fetch Data</button>
+    </form>
+
+    <div className="table-container">
+      <table>
+        <thead>
+          <tr>
+            {columnsOrder.map((col) => (
+              <th key={col}>{col}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data
             .filter((item) => !houseId || item.house_device.startsWith(houseId))
             .map((item, index) => (
-            <tr key={index}>
-              {columnsOrder.map((col) => (
-                <td key={col}>
-                  {col === 'timestamp' && item[col]
-                  ? item[col].replace("T", " ")
-                  : item[col] !== undefined ? item[col] : '-'}
-                </td>
-              ))}
-            </tr>
-          ))}
-          </tbody>
+              <tr key={index}>
+                {columnsOrder.map((col) => {
+                  let value;
 
+                  if (col === 'timestamp') {
+                    value = item[col]?.replace("T", " ").replace(/#\w+$/, '');  
+                  } else if (col === 'status') {
+                    value = isAggregated ? evaluateStatus(item) : item[col] || '-';
+                  } else if (isAggregated && ['temperature', 'humidity', 'CO2', 'RO3', 'RO4'].includes(col)) {
+                    const key = `total_${col}`;
+                    value = item.samples ? (item[key] / item.samples).toFixed(2) : '-';
+                  } else {
+                    if (item[col] === undefined || item[col] === null) {
+                      value = '-';
+                    } else {
+                      value = item[col];
+                    }
+                  }
+                  return <td key={col}>{value}</td>;
+                })}
+              </tr>
+            ))}
+        </tbody>
       </table>
-      </div>
-
-      <canvas id="dataChart" width="1000" height="400"></canvas>
     </div>
-  );
+
+    <canvas id="dataChart" width="1000" height="400"></canvas>
+  </div>
+);
 }
+

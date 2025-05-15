@@ -23,12 +23,21 @@ input,
   font-size: 14px;
 }
 
+/* ===== Bảng và vùng chứa bảng ===== */
+
+.table-container {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  margin-top: 20px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
   background-color: white;
+  table-layout: fixed;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-top: 20px;
 }
 
 th,
@@ -36,17 +45,37 @@ td {
   padding: 10px;
   border-bottom: 1px solid #ddd;
   text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 th {
   background-color: #007BFF;
   color: white;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
+
+/* ===== Cố định độ rộng cột ===== */
+
+th:nth-child(1), td:nth-child(1) { width: 150px; } /* house_device */
+th:nth-child(2), td:nth-child(2) { width: 180px; } /* timestamp */
+th:nth-child(3), td:nth-child(3),
+th:nth-child(4), td:nth-child(4),
+th:nth-child(5), td:nth-child(5),
+th:nth-child(6), td:nth-child(6),
+th:nth-child(7), td:nth-child(7) {
+  width: 120px; /* temperature, humidity, CO2, RO3, RO4 */
+}
+th:nth-child(8), td:nth-child(8) { width: 200px; } /* status */
 
 tr:hover {
   background-color: #f1f1f1;
 }
 
+/* ===== Canvas biểu đồ ===== */
 canvas {
   margin-top: 40px;
 }
