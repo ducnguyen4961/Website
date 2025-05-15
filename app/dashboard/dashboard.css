@@ -22,7 +22,6 @@ input,
   padding: 8px;
   font-size: 14px;
 }
-
 .table-container {
   max-height: 300px;
   overflow-y: auto;
@@ -70,7 +69,6 @@ th:nth-child(8), td:nth-child(8) { width: 200px; } /* status */
 tr:hover {
   background-color: #f1f1f1;
 }
-
 canvas {
   margin-top: 40px;
 }
