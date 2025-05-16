@@ -1,23 +1,35 @@
 "use client";
-import { createContext, useContext,　useEffect, useState } from "react";
-const AuthContext = createContext();
 
-export function AuthProvider({ children }){
-    const [user, setUser] = useState(null);
+import { createContext, useEffect, useState } from "react";
 
-    useEffect(() => {
-        // You can store user in localStorgae or invoke Cognito to take information right here if you need
-        const storeUser = JSON.parse(localStorage.getItem("cognitoUser"));
-        if (storeUser) setUser(storeUser);
-    },[]);
+// Tạo context
+export const AuthContext = createContext();
 
-    return (
-        <AuthContext.Provider value={{user, setUser}}>
-            children
-        </AuthContext.Provider>
-    );
-}
+// Provider bọc toàn bộ app
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
 
-export function useAuth() {
-    return useContext(AuthContext);
+  useEffect(() => {
+    // Kiểm tra localStorage khi load
+    const email = localStorage.getItem("userEmail");
+    if (email) {
+      setUser(email);
+    }
+  }, []);
+
+  const login = (email) => {
+    localStorage.setItem("userEmail", email);
+    setUser(email);
+  };
+
+  const logout = () => {
+    localStorage.removeItem("userEmail");
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }

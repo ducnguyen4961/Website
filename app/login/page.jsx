@@ -24,8 +24,6 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [showNewPasswordForm, setShowNewPasswordForm] = useState(false);
   const [challengeData, setChallengeData] = useState(null);
-  const [mfaCode, setMfaCode] = useState("");
-  const [showMfaInput, setShowMfaInput] = useState(false);
   const [cognitoUser, setCognitoUser] = useState(null);
 
   const handleLogin = (e) => {
@@ -77,26 +75,6 @@ export default function LoginPage() {
     });
   };
 
-  const handleSubmitMfaCode = () => {
-    if (cognitoUser && mfaCode) {
-      cognitoUser.sendMFACode(
-        mfaCode,
-        {
-          onSuccess: (result) => {
-            console.log("MFA success:", result);
-            localStorage.setItem("userEmail", email);
-            router.push("/");
-          },
-          onFailure: (err) => {
-            console.error("MFA error:", err);
-            setError(err.message || "MFA failed");
-          },
-        },
-        "SOFTWARE_TOKEN_MFA"
-      );
-    }
-  };
-
   if (showNewPasswordForm) {
     return (
       <NewPasswordForm
@@ -117,7 +95,9 @@ export default function LoginPage() {
   return (
     <div className="login-container">
       <div className="login-box">
-        <h1>Login</h1>
+        <div className= "logintitle">
+          <h1>Login</h1>
+        </div>
 
         <form className="login-form" onSubmit={handleLogin}>
           <div>
@@ -138,32 +118,14 @@ export default function LoginPage() {
               required
             />
           </div>
-
-          {showMfaInput && (
-            <div>
-              <label>Enter MFA Code</label>
-              <input
-                type="text"
-                value={mfaCode}
-                onChange={(e) => setMfaCode(e.target.value)}
-                placeholder="6-digit code"
-                required
-              />
-              <button type="button" onClick={handleSubmitMfaCode}>
-                Submit MFA Code
-              </button>
-            </div>
-          )}
-
-          {error && <p style={{ color: "red" }}>{error}</p>}
-
-          <button type="submit">Login</button>
-
+          <div className= "btnlogin">
+            <button type="submit">Login</button>
+          </div>
           <div className="extra-links">
             <div className="forgot-password">
               <a href="/forgot-password">Forgot password?</a>
             </div>
-            <div className="signin">
+            <div className="signup">
               New user? <a href="/signup">Sign up</a>
             </div>
           </div>

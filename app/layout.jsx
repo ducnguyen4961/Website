@@ -1,8 +1,8 @@
 'use client';
 import './globals.css';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
-
+import { useRouter } from "next/navigation";
+import { AuthProvider, AuthContext } from "@/context/AuthContext";
 
 export default function RootLayout({ children }) {
   const [userEmail, setUserEmail] = useState(null);
@@ -22,7 +22,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ja">
       <body>
-        <header className="navbar">
+        <AuthProvider>
+          <header className="navbar">
             <div className="logo">
               <img src="/images/logocty.png" alt="Logo" />
             </div>
@@ -32,37 +33,43 @@ export default function RootLayout({ children }) {
               <a href="/products" className="products-btn">Products</a>
               <a href="/about" className="about-btn">About</a>
               <a href="/contact" className="contact-btn">Contact</a>
-              </div>
-              
-              <div className="left-link">
-              {userEmail ? (
-                <>
-                  <div className="profile-dropdown">
-                    <button
-                      className="profile-btn"
-                      onClick={() => setIsProfileOpen((prev) => !prev)}
-                    >
-                      Profile
-                    </button>
-                    {isProfileOpen && (
-                      <div className="dropdown-content">
-                        <p>{userEmail}</p>
-                        <button onClick={handleLogout}>Logout</button>
-                        <a href="/changepassword">Change Password</a>
-                      </div>
-                    )}
-                  </div>
-                  <a href="/dashboard" className="dashboard-btn">Dashboard</a>
-                </>
-              ) : (
-                <>
-                  <a href="/login" className="login-btn">Login</a>
-                  <a href="/signup" className="signup-btn">Sign Up</a>
-                </>
-              )}
             </div>
-          </header>
-          <main>{children}</main>     
+              
+            <div className="left-link">
+            {userEmail ? (
+              <>
+                <div className="profile-dropdown">
+                  <div
+                  className="profile-btn"
+                  onClick={() => setIsProfileOpen((prev) => !prev)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") setIsProfileOpen((prev) => !prev);
+                    }}
+                    >Profile</div>
+
+                  {isProfileOpen && (
+                    <div className="dropdown-content">
+                      <p>{userEmail}</p>
+                      <a className="logout-btn" onClick={handleLogout} role="button">Logout</a>
+                      <a href="/changepassword">Change Password</a>
+                    </div>
+                  )}
+                </div>
+                <a href="/dashboard" className="dashboard-btn">Dashboard</a>
+              </>
+            ) : (
+              <>
+                <a href="/login" className="login-btn">Login</a>
+                <a href="/signup" className="signup-btn">Sign Up</a>
+              </>
+            )}
+          </div>
+        </header>
+        <main>{children}</main>
+
+        </AuthProvider>
       </body>
     </html>
   );

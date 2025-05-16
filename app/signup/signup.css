@@ -1,70 +1,96 @@
 .signup-container {
-  max-width: 400px;
-  margin: 100px auto;
-  padding: 100px;
-  border: 7px solid #973737;
-  border-radius: 40px;
+  max-width: 500px;
+  margin: 80px auto;
+  padding: 40px;
   background-color: #ffffff;
+  border: 3px solid #973737;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
   font-family: Arial, sans-serif;
 }
-.signuptitle {
-  font-size: 28px;       /* Cỡ chữ cho tiêu đề Login */
-  font-weight: bold;     /* In đậm */
+
+.signuptitle h1 {
+  font-size: 32px;
+  font-weight: bold;
   color: rgb(10, 147, 237);
-  margin-top: -50px;
-  margin-bottom: 20px;   /* Khoảng cách phía dưới */
-  text-align: center;    /* Căn giữa */
+  text-align: center;
+  margin-bottom: 30px;
 }
+
 .signup-form {
-  width: 400px;           /* Kích thước chiều ngang */
-  margin: 0 auto;         /* Căn giữa theo chiều ngang */
-  padding: 20px;          /* Khoảng cách bên trong form */
-  border: 1px solid #ccc; /* Viền */
-  border-radius: 8px;     /* Bo góc */
-  background-color: #fff; /* Màu nền */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Đổ bóng */
-  position: relative;     /* Để điều chỉnh bằng top/left nếu cần */
-  top: 10px;
-  left: -20px;
-  right: 5px;
-  bottom: 20px;
-
-  top: 20px;              /* Đẩy xuống dưới 50px */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-input {
-  width: 95%;
-  padding: 8px;
-  margin-top: 10px;
-  margin-bottom: 20px;
+.signup-form label {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.signup-form input {
+  padding: 10px 12px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 16px;
+  width: 95%;
+  transition: border-color 0.2s ease-in-out;
 }
 
-button {
-  width: 99%;              /* Chiều rộng full */
-  padding: 8px 0;          /* Padding trên-dưới 12px */
-  font-size: 18px;          /* Cỡ chữ */
-  font-weight: bold;        /* In đậm */
-  background-color: #007bff; /* Màu nền */
-  color: white;             /* Màu chữ */
-  border: none;             /* Không viền */
-  border-radius: 5px;       /* Bo góc */
-  cursor: pointer;          /* Con trỏ khi hover */
-  margin-top: 15px;         /* Cách phần trên một chút */
+.signup-form input:focus {
+  outline: none;
+  border-color: #2196f3;
 }
 
-button:hover {
+.signup-form button {
+  width: 100%;
+  padding: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.signup-form button:hover {
   background-color: #0600b5;
 }
+
 .signup-text {
   margin-top: 20px;
-  font-size: 18px;
+  font-size: 14px;
+  text-align: center;
 }
 
+.signup-text a {
+  color: #1976d2;
+  text-decoration: none;
+}
 
+.signup-text a:hover {
+  text-decoration: underline;
+}
 
+.signup-form p {
+  font-size: 14px;
+  margin-top: 10px;
+}
 
+.signup-form p button {
+  background: none;
+  border: none;
+  color: #1976d2;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+  margin-left: 4px;
+}
 
-
-
+.signup-form p button:hover {
+  color: #0600b5;
+}
