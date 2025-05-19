@@ -148,12 +148,16 @@ export default function SensorChart({ data }) {
         type: 'linear',
         position: 'left',
         title: { display: true, text: 'Temperature (°C)' },
+        min: 0,
+        max: 70
       },
       y2: {
         type: 'linear',
         position: 'right',
         title: { display: true, text: 'Humidity (%)' },
         grid: { drawOnChartArea: false },
+        min: 0,
+        max: 100
       },
       y3: {
         type: 'linear',
@@ -161,6 +165,8 @@ export default function SensorChart({ data }) {
         offset: true,
         title: { display: true, text: 'CO2 (ppm)' },
         grid: { drawOnChartArea: false },
+        min: 400,
+        max: 4000
       },
       y4: {
         type: 'linear',
@@ -168,6 +174,8 @@ export default function SensorChart({ data }) {
         offset: true,
         title: { display: true, text: 'RO3 (%)' },
         grid: { drawOnChartArea: false },
+        min: 0,
+        max: 1000
       },
       y5: {
         type: 'linear',
@@ -176,7 +184,7 @@ export default function SensorChart({ data }) {
         title: { display: true, text: 'RO4 (%)' },
         grid: { drawOnChartArea: false },
         min: 30,
-        max: 70
+        max: 100
       },
     }
   };
