@@ -15,64 +15,67 @@ export default function DashboardPage() {
   const [startTimestamp, setStartTimestamp] = useState('');
   const [endTimestamp, setEndTimestamp] = useState('');
 
-  useEffect(() => {
-    return () => {
-      if (window.myChart) {
-        window.myChart.destroy();
-      }
-    };
-  }, []);
-
   const fetchData = async (e) => {
     e.preventDefault();
 
+    if (!deviceId || !startTimestamp || !endTimestamp) {
+      alert('Vui lòng nhập đầy đủ Device ID, Start và End Timestamp.');
+      return;
+    }
+    
     const apiUrl = `https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version2/sensor-data?device_id=${deviceId}&start_timestamp=${startTimestamp}&end_timestamp=${endTimestamp}`;
-
+    
     try {
       const response = await fetch(apiUrl);
       const result = await response.json();
-      if (Array.isArray(result)) {
-        result.startTimestamp = startTimestamp;
-        result.endTimestamp = endTimestamp;
+      if (Array.isArray(result) && result.length > 0) {
         setData(result);
       } else {
-        alert('No data found.');
+        alert('データが探せません');
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
-      alert('Error fetching data.');
+      alert('エラー');
     }
   };
 
-  const columnsOrder = [
-  'house_device',
-  'timestamp',
-  'temperature',
-  'humidity',
-  'CO2',
-  'RO3',
-  'RO4',
-  'status'
-];
+  const thresholds = {
+    temperature: { min: 20, max: 30 },
+    humidity: { min: 40, max: 70 },
+    CO2: { min: 50, max: 70 },
+    NIR: { min: 30, max: 50 },
+    PPFD: { min: 20, max: 30 },
+    soil_EC: { min: 40, max: 70 },
+    soil_mois: { min: 50, max: 70 },
+    soil_temp: { min: 30, max: 50 },
+    VR: { min: 35, max: 50 }
+  };
 
-const thresholds = {
-  temperature: { min: 20, max: 30 },
-  humidity: { min: 40, max: 70 },
-  CO2: { min: 50, max: 70 },
-  RO3: { min: 30, max: 50 },
-  RO4: { min: 35, max: 50 }
-};
-
-const fieldLabels = {
-  temperature: '温度',
-  humidity: '湿度',
-  CO2: 'CO2',
-  RO3: 'RO3',
-  RO4: 'RO4'
-};
+  const columnsOrder = ['house_device','timestamp','temperature','humidity','CO2','NIR','VR','PPFD','soil_mois','soil_EC','soil_temp','status'];
+  const fieldLabels = {
+    house_device: 'House_Device',
+    timestamp: 'Timestamp',
+    temperature: '温度',
+    humidity: '湿度',
+    CO2: 'CO2',
+    NIR: 'NIR',
+    PPFD: 'PPFD',
+    VR: 'VR',
+    soil_mois: '土壌水分',
+    soil_EC: '土壌EC',
+    soil_temp: '土壌温度',
+    status: 'Status'
+  };
 
 function evaluateStatus(item) {
-  const avg = (field) => item.samples ? item[`total_${field}`] / item.samples : null;
+  const avg = (field) => {
+    if ('total_' + field in item) {
+      const total = item[`total_${field}`];
+      return (item.samples && total != null) ? total / item.samples : null;
+    } else {
+      // Raw data fallback
+      return item[field] ?? null;
+    }
+  };
 
   const check = (val, { min, max }) => {
     if (val == null) return 'N/A';
@@ -82,7 +85,6 @@ function evaluateStatus(item) {
   };
 
   const results = [];
-
   for (const field of Object.keys(thresholds)) {
     const value = avg(field);
     const level = check(value, thresholds[field]);
@@ -94,6 +96,7 @@ function evaluateStatus(item) {
 
   return results.length > 0 ? results.join(', ') : 'Good';
 }
+
 function exportCSV(data, isAggregated) {
   if (!data || data.length === 0) {
     alert("No data to export");
@@ -106,19 +109,27 @@ function exportCSV(data, isAggregated) {
     'temperature',
     'humidity',
     'CO2',
-    'RO3',
-    'RO4',
+    'NIR',
+    'PPFD',
+    'VR',
+    'soil_mois',
+    'soil_EC',
+    'soil_temp',
     'status'
   ];
 
   const fieldLabels = {
-    house_device: 'House Device',
+    house_device: 'House_Device',
     timestamp: 'Timestamp',
-    temperature: 'Temperature',
-    humidity: 'Humidity',
+    temperature: '温度',
+    humidity: '湿度',
     CO2: 'CO2',
-    RO3: 'RO3',
-    RO4: 'RO4',
+    NIR: 'NIR',
+    PPFD: 'PPFD',
+    VR: 'VR',
+    soil_mois: '土壌水分',
+    soil_EC: '土壌EC',
+    soil_temp: '土壌温度',
     status: 'Status'
   };
 
@@ -126,12 +137,24 @@ function exportCSV(data, isAggregated) {
     temperature: { min: 20, max: 30 },
     humidity: { min: 40, max: 70 },
     CO2: { min: 50, max: 70 },
-    RO3: { min: 30, max: 50 },
-    RO4: { min: 35, max: 50 }
+    NIR: { min: 30, max: 50 },
+    PPFD: { min: 20, max: 30 },
+    soil_EC: { min: 40, max: 70 },
+    soil_mois: { min: 50, max: 70 },
+    soil_temp: { min: 30, max: 50 },
+    VR: { min: 35, max: 50 }
   };
 
   function evaluateStatus(item) {
-    const avg = (field) => item.samples ? item[`total_${field}`] / item.samples : null;
+    const isAggregated = 'samples' in item && item.samples > 0;
+
+    const avg = (field) => {
+      if (isAggregated && item[`total_${field}`] != null && item.samples) {
+        return item[`total_${field}`] / item.samples;
+      } else {
+        return item[field] ?? null;
+      }
+    };
 
     const check = (val, { min, max }) => {
       if (val == null) return 'N/A';
@@ -141,7 +164,6 @@ function exportCSV(data, isAggregated) {
     };
 
     const results = [];
-
     for (const field of Object.keys(thresholds)) {
       const value = avg(field);
       const level = check(value, thresholds[field]);
@@ -153,32 +175,39 @@ function exportCSV(data, isAggregated) {
 
     return results.length > 0 ? results.join(', ') : 'Good';
   }
- // o day bat dau lam viec ve export filefile
-  const csvRows = [];
-  csvRows.push(fields.map(field => `"${fieldLabels[field] || field}"`).join(','));
 
-  for (const item of data) {
-    const row = fields.map(col => {
+  const escapeCSV = (val) => {
+    if (val == null) return '';
+    const str = val.toString().replace(/"/g, '""');
+    return `"${str}"`;
+  };
+
+  const header = fields.map(f => escapeCSV(fieldLabels[f] || f)).join(',');
+
+  const rows = data.map(item => {
+    return fields.map(col => {
       let value;
 
       if (col === 'timestamp') {
         value = item[col]?.replace("T", " ").replace(/#\w+$/, '');
       } else if (col === 'status') {
-        value = isAggregated ? evaluateStatus(item) : item[col] || '-';
-      } else if (isAggregated && ['temperature', 'humidity', 'CO2', 'RO3', 'RO4'].includes(col)) {
-        const key = `total_${col}`;
-        value = item.samples ? (item[key] / item.samples).toFixed(2) : '-';
+        value = evaluateStatus(item);
       } else {
-        value = item[col] ?? '-';
+        if ('samples' in item && item[`total_${col}`] != null) {
+          const total = item[`total_${col}`];
+          value = item.samples ? (total / item.samples).toFixed(2) : '';
+        } else {
+          value = item[col] ?? '';
+        }
       }
 
-      return typeof value === 'string' && value.includes(',') ? `"${value}"` : value;
-    });
+      return escapeCSV(value);
+    }).join(',');
+  });
 
-    csvRows.push(row.join(','));
-  }
+  const csvContent = '\uFEFF' + [header, ...rows].join('\n');
 
-  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -186,6 +215,9 @@ function exportCSV(data, isAggregated) {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+
+
 
 const isAggregated = data.length > 0 && 'samples' in data[0];
 return (
@@ -206,12 +238,13 @@ return (
     <div className="table-container">
       <table>
         <thead>
-          <tr>
-            {columnsOrder.map((col) => (
-              <th key={col}>{col}</th>
-            ))}
-          </tr>
+        <tr>
+        {columnsOrder.map((col) => (
+        <th key={col}>{fieldLabels[col] || col}</th>
+        ))}
+        </tr>
         </thead>
+
         <tbody>
           {data
             .filter((item) => !houseId || item.house_device.startsWith(houseId))
@@ -219,19 +252,17 @@ return (
               <tr key={index}>
                 {columnsOrder.map((col) => {
                   let value;
-
                   if (col === 'timestamp') {
-                    value = item[col]?.replace("T", " ").replace(/#\w+$/, '');  
+                    value = item[col]?.replace("T", " ").replace(/#\w+$/, '');
                   } else if (col === 'status') {
-                    value = isAggregated ? evaluateStatus(item) : item[col] || '-';
-                  } else if (isAggregated && ['temperature', 'humidity', 'CO2', 'RO3', 'RO4'].includes(col)) {
-                    const key = `total_${col}`;
-                    value = item.samples ? (item[key] / item.samples).toFixed(2) : '-';
+                    value = evaluateStatus(item);
                   } else {
-                    if (item[col] === undefined || item[col] === null) {
-                      value = '-';
+                    if ('samples' in item && item[`total_${col}`] !== undefined) {
+                      const total = item[`total_${col}`];
+                      const avg = total != null && item.samples ? total / item.samples : null;
+                      value = avg != null ? avg.toFixed(2) : '-';
                     } else {
-                      value = item[col];
+                      value = item[col] != null ? item[col] : '-';
                     }
                   }
                   return <td key={col}>{value}</td>;
