@@ -32,7 +32,6 @@ export default function SensorChart({ data }) {
     soil_mois: false,
     soil_EC: false,
     soil_temp: false,
-    vpd: false, // 追加
   });
 
   const rawStart = data?.[0]?.timestamp?.replace(/#\w+$/, '');
@@ -53,7 +52,6 @@ export default function SensorChart({ data }) {
     return item[field] ?? null;
   };
 
-  // colorMap に追加
   const colorMap = {
     temperature: 'rgb(255, 0, 55)',
     humidity: 'rgb(45, 156, 231)',
@@ -64,10 +62,8 @@ export default function SensorChart({ data }) {
     soil_mois: 'rgb(182, 137, 14)',
     soil_EC: 'rgb(163, 176, 184)',
     soil_temp: 'rgb(28, 67, 25)',
-    vpd: 'rgb(255, 165, 0)', // オレンジ色
   };
 
-  // axisMap に追加
   const axisMap = {
     temperature: 'y1',
     humidity: 'y2',
@@ -78,10 +74,8 @@ export default function SensorChart({ data }) {
     soil_mois: 'y7',
     soil_EC: 'y8',
     soil_temp: 'y9',
-    vpd: 'y10',
   };
 
-  // labelMap に追加
   const labelMap = {
     temperature: '温度 (°C)',
     humidity: '湿度 (%)',
@@ -92,7 +86,6 @@ export default function SensorChart({ data }) {
     soil_mois: '土壌水分 (%)',
     soil_EC: '土壌EC (mS/cm)',
     soil_temp: '土壌温度 (°C)',
-    vpd: '飽差 (kPa)',
   };
   const isAggregated = data.length > 0 && 'samples' in data[0];
   const fields = [
@@ -105,13 +98,8 @@ export default function SensorChart({ data }) {
     'soil_mois',
     'soil_EC',
     'soil_temp',
-    'vpd',
   ];
 
-  const calculateVPD = (temperature, humidity) => {
-    if (temperature == null || humidity == null) return null;
-    return ((1 - humidity/100) * Math.exp(19.0177 - 5327/(temperature + 273.15))).toFixed(2);
-  };
 
   const chartData = useMemo(() => {
 
@@ -145,43 +133,6 @@ export default function SensorChart({ data }) {
 
       const filteredData = processedData.filter(d => !d.isZero);
 
-      if (field === 'vpd') {
-        return {
-          label: labelMap[field],
-          data: filteredData.map(item => ({
-            x: new Date(item.timestamp.replace(/#\w+$/, '')),
-            y: calculateVPD(
-              extractAvgValue(item, 'temperature'),
-              extractAvgValue(item, 'humidity')
-            ),
-          })),
-          parsing: false,
-          borderColor: colorMap[field],
-          yAxisID: axisMap[field],
-          tension: 0.3,
-          spanGaps: true,
-          hidden: !visibleLines[field],
-          segment: {
-            borderDash: ctx => {
-              const { p0, p1 } = ctx.segment || {};
-              if (!p0 || !p1) return;
-
-              const index0 = ctx.p0DataIndex;
-              const index1 = ctx.p1DataIndex;
-
-              const rawIndex0 = filteredData[index0].rawIndex;
-              const rawIndex1 = filteredData[index1].rawIndex;
-
-              const hasZeroBetween = data
-                .slice(rawIndex0 + 1, rawIndex1)
-                .some(d => extractAvgValue(d, field) === 0);
-
-              if (hasZeroBetween) return [6, 6];
-              return undefined;
-            }
-          }
-        };
-      }
 
       return {
         label: labelMap[field],
@@ -293,7 +244,7 @@ export default function SensorChart({ data }) {
         grid: { drawOnChartArea: false },
         title: { display: true, text: labelMap.CO2 },
         min: -20,
-        max: 3000,
+        max: 1000,
       },
       y4: {
         type: 'linear',
@@ -354,16 +305,6 @@ export default function SensorChart({ data }) {
         title: { display: true, text: labelMap.soil_temp },
         min: -10,
         max: 50,
-      },
-      y10: {
-        type: 'linear',
-        display: visibleLines.vpd,
-        position: 'right',
-        offset: true,
-        grid: { drawOnChartArea: false },
-        title: { display: true, text: labelMap.vpd },
-        min: 0,
-        max: 5,
       },
     },
   };
