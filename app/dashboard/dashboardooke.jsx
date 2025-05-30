@@ -41,84 +41,96 @@ export default function DashboardPage() {
   };
 
   const fetchData = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!deviceId || !startTimestamp || !endTimestamp) {
-    alert('Please fill Device ID, Start and End Timestamp.');
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const withinOneDay = isWithinOneDay(startTimestamp, endTimestamp);
-    const token = localStorage.getItem('token');
-
-    const [detailRes, aggRes] = await Promise.all([
-      fetch(`https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version2/sensor-data?device_id=${deviceId}&start_timestamp=${startTimestamp}&end_timestamp=${endTimestamp}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      }),
-      fetch(`https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version2/query_data?device_id=${deviceId}&start_timestamp=${startTimestamp}&end_timestamp=${endTimestamp}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      }),
-    ]);
-
-    // Check HTTP status
-    if (!detailRes.ok || !aggRes.ok) {
-      throw new Error(`Request failed with status: ${detailRes.status}/${aggRes.status}`);
+    if (!deviceId || !startTimestamp || !endTimestamp) {
+      alert('please fill Device ID, Start and End Timestamp.');
+      return;
     }
 
-    const [detailData, aggData] = await Promise.all([
-      detailRes.json(),
-      aggRes.json()
-    ]);
+    setLoading(true);
 
-    // Validate response format
-    const validDetailData = Array.isArray(detailData) ? detailData : [];
-    const validAggData = Array.isArray(aggData) ? aggData : [];
+    try {
+      const withinOneDay = isWithinOneDay(startTimestamp, endTimestamp);
+      const token = localStorage.getItem('token');
 
-    setRawItems(validDetailData);
-    
-    // Process aggregate data
-    const filteredAggData = validAggData.filter(
-      item => item?.timestamp?.endsWith('T00:00:00#daily')
-    );
-    
-    const uniqueAggData = filteredAggData.filter(
-      (item, index, self) => index === self.findIndex(i => i.timestamp === item.timestamp)
-    );
 
-    setAggItems(uniqueAggData);
+      if (withinOneDay) {
+        const [detailRes, aggRes] = await Promise.all([
+          fetch(`https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version2/sensor-data?device_id=${deviceId}&start_timestamp=${startTimestamp}&end_timestamp=${endTimestamp}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          fetch(`https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version2/query_data?device_id=${deviceId}&start_timestamp=${startTimestamp}&end_timestamp=${endTimestamp}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+        ]);
+        const [detailData, aggData] = await Promise.all([
+          detailRes.json(),
+          aggRes.json()
+        ]);
+        console.log('Raw detail data from API:', detailData);
+        console.log('Raw aggregate data from API:', aggData);
+        setRawItems(detailData || []);
+        setAggItems(aggData.Items || []);
+        
 
-    // Combine data if within one day
-    if (withinOneDay) {
-      const combined = validDetailData.map(item => {
-        const matchedAgg = uniqueAggData.find(a => 
-          a.timestamp?.startsWith(item.timestamp?.substring(0, 10))
+        if (!Array.isArray(detailData) || !Array.isArray(aggData)) {
+          console.error('Unexpected API result:', detailData, aggData);
+          alert('API returned unexpected data.');
+          setData([]);
+          return;
+        }
+        const filteredAggData = aggData.filter(
+          (item) => item.timestamp?.endsWith('T00:00:00#daily')
         );
-        return matchedAgg ? { ...item, ...matchedAgg } : item;
-      });
-      setData(combined);
-    } else {
-      setData(uniqueAggData);
+        console.log('Filtered aggregate data (daily only):', filteredAggData);
+        
+        setAggItems(filteredAggData);
+
+        const combined = detailData.map((item) => {
+          const matchedAgg = filteredAggData.find((a) =>
+            a.timestamp?.startsWith(item.timestamp?.substring(0, 10))
+          );
+          if (matchedAgg) {
+            const { timestamp: aggTs, ...aggRest } = matchedAgg;
+            return { ...item, ...aggRest, agg_timestamp: aggTs };
+          }
+          return item;
+        });
+        console.log('Combined data:', combined);
+        setData(combined);
+        setIsAggregated(false);
+
+        if (combined.length === 0) alert('データが探せません');
+      } else {
+        const res = await fetch(`https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version2/query_data?device_id=${deviceId}&start_timestamp=${startTimestamp}&end_timestamp=${endTimestamp}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const result = await res.json();
+        console.log('Aggregate data (multi-day):', result);
+        setData(result);
+
+        if (!Array.isArray(result)) {
+          console.error('Unexpected API result:', result);
+          alert('API returned unexpected data.');
+          setData([]);
+          return;
+        }
+
+        setData(result);
+        setIsAggregated(true);
+
+        if (result.length === 0) alert('データが探せません');
+      }
+      
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      alert('エラー');
+    } finally {
+      setLoading(false);
     }
-
-    setIsAggregated(!withinOneDay);
-
-    if (validDetailData.length === 0 && uniqueAggData.length === 0) {
-      alert('No data found');
-    }
-
-  } catch (error) {
-    console.error('Fetch error:', error);
-    alert('Error fetching data');
-    setData([]);
-    setRawItems([]);
-    setAggItems([]);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   function Table({ data, fields }) {
     console.log('Table data:', data);

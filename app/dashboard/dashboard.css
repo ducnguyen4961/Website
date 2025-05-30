@@ -62,9 +62,9 @@ th:nth-child(4), td:nth-child(4),
 th:nth-child(5), td:nth-child(5),
 th:nth-child(6), td:nth-child(6),
 th:nth-child(7), td:nth-child(7) {
-  width: 120px;
+  width: 100px;
 }
-th:nth-child(8), td:nth-child(8) { width: 200px; } /* status */
+th:nth-child(8), td:nth-child(8) { width: 110px; } /* status */
 
 tr:hover {
   background-color: #f1f1f1;

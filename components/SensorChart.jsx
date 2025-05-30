@@ -99,40 +99,23 @@ export default function SensorChart({ data }) {
     'soil_EC',
     'soil_temp',
   ];
-
-
   const chartData = useMemo(() => {
-
     if (!hasData) return { datasets: [] };
-
-
     const datasets = Object.keys(visibleLines)
-
     .filter(field => visibleLines[field])
-
     .map(field => {
-
-      // Tạo processedData riêng cho từng field
-
-      const processedData = data.map((item, index, arr) => {
-
+      const processedData = data.map((item, index) => {
         const y = extractAvgValue(item, field);
-
+        const isGap = y === 0;
         return {
-
           x: new Date(item.timestamp.replace(/#\w+$/, '')),
-
-          y,
-          isZero: y === 0,
-
-          rawIndex: index, // để tra lại vị trí trong data gốc
+          y: isGap ? null : y,
+          isGap,
+          rawIndex: index,
         };
       });
 
-      // Bỏ điểm có y = 0
-
-      const filteredData = processedData.filter(d => !d.isZero);
-
+      const filteredData = processedData; // giữ nguyên
 
       return {
         label: labelMap[field],
@@ -144,24 +127,39 @@ export default function SensorChart({ data }) {
         spanGaps: true,
         hidden: !visibleLines[field],
         segment: {
+ 
           borderDash: ctx => {
+ 
             const { p0, p1 } = ctx.segment || {};
+ 
             if (!p0 || !p1) return;
 
+ 
             const index0 = ctx.p0DataIndex;
+ 
             const index1 = ctx.p1DataIndex;
 
+ 
             const rawIndex0 = filteredData[index0].rawIndex;
+ 
             const rawIndex1 = filteredData[index1].rawIndex;
 
+ 
             const hasZeroBetween = data
-              .slice(rawIndex0 + 1, rawIndex1)
-              .some(d => extractAvgValue(d, field) === 0);
+ 
+            .slice(rawIndex0 + 1, rawIndex1)
+ 
+            .some(d => extractAvgValue(d, field) === 0);
 
+ 
             if (hasZeroBetween) return [6, 6];
+ 
             return undefined;
+ 
           }
+
         }
+
       };
     });
 
