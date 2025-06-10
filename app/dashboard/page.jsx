@@ -1,173 +1,214 @@
 'use client';
-
 import { useState } from 'react';
 import './dashboard.css';
 import { exportCSV } from '@/components/exportCSV'; 
 import dynamic from 'next/dynamic';
-import { fieldLabels, evaluateStatus } from '@/components/constants';
-import { formatTimestamp } from '@/components/utils';
+import { FIELD_LABELS, evaluateStatus, CSV_FIELDS_DAILY, CSV_FIELDS } from '@/components/constants';
+import { formatTimestamp, formatRawTimestamp,formatDateOnly} from '@/components/utils'; 
+import Link from 'next/link';
 
+const SensorChartGroup = dynamic(() => import('@/components/SensorChartGroup'), { ssr: false });
 const SensorChart = dynamic(() => import('@/components/SensorChart'), { ssr: false });
-
 export default function DashboardPage() {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState({ daily: [], hourly: [] });
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [deviceId, setDeviceId] = useState('');
-  const [startTimestamp, setStartTimestamp] = useState('');
-  const [endTimestamp, setEndTimestamp] = useState('');
-  const [isAggregated, setIsAggregated] = useState(false);
+  const [laiAreaData, setLaiAreaData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [sensorData, setSensorData] = useState([]);
-  const [aggData, setAggData] = useState([]);
   const [rawItems, setRawItems] = useState([]);
   const [aggItems, setAggItems] = useState([]);
-
-
+  const [showChart, setShowChart] = useState(false);
+  const [isSingleDay, setIsSingleDay] = useState(true);
 
   const oldFields = [
     'house_device', 'timestamp', 'temperature', 'humidity', 'CO2',
     'soil_mois', 'soil_EC', 'soil_temp','satur', 'VR', 'PPFD', 'NIR', 'status'
   ];
-
   const newFields = [
-    'house_device', 'timestamp','avg_NIR', 'avg_PPFD', 'avg_VR', 'lai', 'nir_vr_ratio'
+    'house_device', 'timestamp','avg_NIR', 'avg_PPFD', 'avg_VR', 'lai', 'nir_vr_ratio','area_per_plant'
   ];
-
+  const baseFields = [
+    'house_device', 'timestamp', 'temperature', 'humidity', 'CO2',
+    'soil_mois', 'soil_EC', 'soil_temp', 'satur', 'VR', 'PPFD', 'NIR', 'status'
+  ];
+  function getDisplayValue(item, field) {
+    if (field === 'timestamp') {
+    return formatTimestamp(item[field]);
+  }
+  if (['house_device', 'status', 'lai', 'nir_vr_ratio'].includes(field)) {
+    return item[field] ?? '-';
+  }
+  if (item[field] !== undefined) {
+    return item[field];
+  }
+  const totalKey = `total_${field}`;
+  if (item[totalKey] !== undefined && item.samples) {
+    return (item[totalKey] / item.samples).toFixed(2);
+  }
+  return '-';
+}
   const isWithinOneDay = (start, end) => {
     const startDate = new Date(start);
     const endDate = new Date(end);
-    const diffTime = Math.abs(endDate - startDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays <= 1;
+    return (
+      startDate.getFullYear() === endDate.getFullYear() &&
+      startDate.getMonth() === endDate.getMonth() &&
+      startDate.getDate() === endDate.getDate()
+    );
   };
 
   const fetchData = async (e) => {
-  e.preventDefault();
-
-  if (!deviceId || !startTimestamp || !endTimestamp) {
-    alert('Please fill Device ID, Start and End Timestamp.');
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const withinOneDay = isWithinOneDay(startTimestamp, endTimestamp);
-    const token = localStorage.getItem('token');
-
-    const [detailRes, aggRes] = await Promise.all([
-      fetch(`https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version2/sensor-data?device_id=${deviceId}&start_timestamp=${startTimestamp}&end_timestamp=${endTimestamp}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      }),
-      fetch(`https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version2/query_data?device_id=${deviceId}&start_timestamp=${startTimestamp}&end_timestamp=${endTimestamp}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      }),
-    ]);
-
-    // Check HTTP status
-    if (!detailRes.ok || !aggRes.ok) {
-      throw new Error(`Request failed with status: ${detailRes.status}/${aggRes.status}`);
+    e.preventDefault();
+    if (!deviceId || !startDate || !endDate) {
+      alert('Please fill Device ID, Start and End Date');
+      return;
     }
-
-    const [detailData, aggData] = await Promise.all([
-      detailRes.json(),
-      aggRes.json()
-    ]);
-
-    // Validate response format
-    const validDetailData = Array.isArray(detailData) ? detailData : [];
-    const validAggData = Array.isArray(aggData) ? aggData : [];
-
-    setRawItems(validDetailData);
-    
-    // Process aggregate data
-    const filteredAggData = validAggData.filter(
-      item => item?.timestamp?.endsWith('T00:00:00#daily')
-    );
-    
-    const uniqueAggData = filteredAggData.filter(
-      (item, index, self) => index === self.findIndex(i => i.timestamp === item.timestamp)
-    );
-
-    setAggItems(uniqueAggData);
-
-    // Combine data if within one day
-    if (withinOneDay) {
-      const combined = validDetailData.map(item => {
-        const matchedAgg = uniqueAggData.find(a => 
-          a.timestamp?.startsWith(item.timestamp?.substring(0, 10))
+    setShowChart(true);  
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const adjustedStart = `${startDate}T00:00:00`;
+      const adjustedEnd = `${endDate}T23:59:59`;
+      const isSingleDay = isWithinOneDay(startDate, endDate);
+      setRawItems([]);
+      setData({ daily: [], hourly: [] });
+      if (isSingleDay) {
+        const rawRes = await fetch(
+          `https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version2/sensor-data?device_id=${deviceId}&start_timestamp=${adjustedStart}&end_timestamp=${adjustedEnd}`,
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-        return matchedAgg ? { ...item, ...matchedAgg } : item;
-      });
-      setData(combined);
-    } else {
-      setData(uniqueAggData);
+        if (!rawRes.ok) throw new Error(`HTTP error! status: ${rawRes.status}`);
+        const rawResult = await rawRes.json();
+        const rawData = Array.isArray(rawResult) ? rawResult : (rawResult.items || rawResult.data || []);
+        setRawItems(rawData.map(item => ({
+          house_device: item.house_device || deviceId,
+          timestamp: item.timestamp,
+          temperature: item.temperature?.toFixed(2),
+          humidity: item.humidity?.toFixed(2),
+          CO2: item.CO2?.toFixed(2),
+          soil_mois: item.soil_mois?.toFixed(2),
+          soil_EC: item.soil_EC?.toFixed(2),
+          soil_temp: item.soil_temp?.toFixed(2),
+          satur: item.satur?.toFixed(2),
+          VR: item.VR?.toFixed(2),
+          PPFD: item.PPFD?.toFixed(2),
+          NIR: item.NIR?.toFixed(2),
+          status: item.status || '',
+        })));
+      }
+      const aggRes = await fetch(
+        `https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version2/query_data?device_id=${deviceId}&start_timestamp=${adjustedStart}&end_timestamp=${adjustedEnd}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const laiRes = await fetch(
+        `https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version1/sensor-data`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            device_id: deviceId,
+            start_timestamp: adjustedStart,
+            end_timestamp: adjustedEnd
+          })
+        }
+      );
+      if (!laiRes.ok) throw new Error("Failed to fetch LAI data");
+      const laiResult = await laiRes.json();
+      setLaiAreaData(laiResult);
+      if (!aggRes.ok) throw new Error(`HTTP error! status: ${aggRes.status}`);
+      const aggResult = await aggRes.json();
+      const processAggregate = (items) => {
+        return (items || []).map(item => {
+          const processedItem = {
+            house_device: item.house_device,
+            timestamp: item.timestamp,
+            samples: item.samples || 1,
+          };
+          Object.keys(item).forEach(key => {
+            if (key.startsWith('total_')) {
+              const fieldName = key.replace('total_', '');
+              processedItem[fieldName] = item.samples 
+              ? (item[key] / item.samples).toFixed(2)
+              : item[key];
+            } else if (!['house_device', 'timestamp', 'samples'].includes(key)) {
+              processedItem[key] = item[key];
+            }
+          });
+          if (item.total_NIR) processedItem.NIR = (item.total_NIR / item.samples).toFixed(2);
+          if (item.total_PPFD) processedItem.PPFD = (item.total_PPFD / item.samples).toFixed(2);
+          if (item.total_VR) processedItem.VR = (item.total_VR / item.samples).toFixed(2);
+          if (item.total_temperature) processedItem.temperature = (item.total_temperature / item.samples).toFixed(2);
+          if (item.total_humidity) processedItem.humidity = (item.total_humidity / item.samples).toFixed(2);
+          if (item.total_CO2) processedItem.CO2 = (item.total_CO2 / item.samples).toFixed(2);
+          if (item.total_temperature && item.total_humidity && item.samples) {
+            const tempC = item.total_temperature / item.samples;
+            const RH = item.total_humidity / item.samples;
+            const e_s = Math.exp(19.0177 - (5327 / (tempC + 273.15)));
+            const e = RH / 100 * e_s;
+            const absoluteHumidity = (216.7 * e) / (tempC + 273.15);
+            processedItem.satur = absoluteHumidity.toFixed(2);
+          }
+          if (item.total_soil_EC) processedItem.soil_EC = (item.total_soil_EC / item.samples).toFixed(2);
+          if (item.total_soil_temp) processedItem.soil_temp = (item.total_soil_temp / item.samples).toFixed(2);
+          if (item.total_soil_mois) processedItem.soil_mois = (item.total_soil_mois / item.samples).toFixed(2);
+          return processedItem;
+        });
+      };
+      const processedData = {
+        daily: processAggregate(aggResult.daily),
+        hourly: processAggregate(aggResult.hourly)
+      };
+      const singleDay = isWithinOneDay(startDate, endDate);
+      setIsSingleDay(singleDay);
+      setData(processedData);
+      setAggItems(processedData.daily);
+    } catch (error) {
+      alert("Error when take data " + error.message);
+    } finally {
+      setLoading(false);
     }
-
-    setIsAggregated(!withinOneDay);
-
-    if (validDetailData.length === 0 && uniqueAggData.length === 0) {
-      alert('No data found');
-    }
-
-  } catch (error) {
-    console.error('Fetch error:', error);
-    alert('Error fetching data');
-    setData([]);
-    setRawItems([]);
-    setAggItems([]);
-  } finally {
-    setLoading(false);
-  }
-};
-
-  function Table({ data, fields }) {
-    console.log('Table data:', data);
-    console.log('Table fields:', fields);
-    return (
-      <table border="1" cellPadding={5} style={{ marginBottom: 40, width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ backgroundColor: '#eee' }}>
-            {fields.map(f => (
-              <th key={f} style={{ textAlign: 'left' }}>{fieldLabels[f] || f}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.length === 0 ? (
-            <tr><td colSpan={fields.length} style={{ textAlign: 'center' }}>No data</td></tr>
-          ) : (
-            data.map((row, i) => (
-              <tr key={i}>
-                {fields.map(f => (
-                  <td key={f}>{row[f] != null ? row[f] : '-'}</td>
-                ))}
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    );
-  }
-
-  // Tách dữ liệu ra 2 nhóm theo các trường tương ứng
-  const oldData = data.map(item => {
+  };
+  const combinedData = isSingleDay
+  ? [...rawItems, ...data.hourly, ...data.daily]
+  : [...data.hourly, ...data.daily];
+  const oldData = combinedData.map(item => {  
     const obj = {};
     oldFields.forEach(f => {
-      obj[f] = item[f];
+      if (f === 'house_device' || f === 'status') {
+        obj[f] = item[f];
+      } else if (f === 'timestamp') {
+        obj[f] = item[f]?.split('#')[0];
+      } else {
+        const val = item[f];
+        obj[f] = val !== undefined && val !== null && val !== '-' ? Number(val) : null;
+      }
     });
-    return obj;
+    return obj;  
   });
-
-  const newData = data.map(item => {
+  const laiMap = new Map(
+    laiAreaData.map(item => [item.timestamp.split('#')[0], item.area_per_plant])
+  );
+  const mergedDaily = data.daily.map(item => ({
+    ...item,
+    area_per_plant: laiMap.get(item.timestamp.split('#')[0]) ?? null,
+  }));
+  const newData = mergedDaily.map(item => {
     const obj = {};
     newFields.forEach(f => {
-      obj[f] = item[f];
+      let val = item[f];
+      if (val !== undefined && val !== null && val !== '-') {
+        const num = Number(val);
+        obj[f] = isNaN(num) ? val : num;
+      } else {
+        obj[f] = null;
+      }
     });
     return obj;
   });
-
-console.log('Raw items for old data table:', rawItems);
-console.log('Aggregate items for new data table:', aggItems);
 return (
   <div className="fetch-data">
     <h1>🌱 IoT Greenhouse Monitoring Dashboard 🌱</h1>
@@ -180,105 +221,137 @@ return (
         required
       />
       <input
-        type="datetime-local"
-        value={startTimestamp}
-        onChange={(e) => setStartTimestamp(e.target.value)}
-        required
+      type="date"
+      value={startDate}
+      onChange={(e) => setStartDate(e.target.value)}
+      required
       />
       <input
-        type="datetime-local"
-        value={endTimestamp}
-        onChange={(e) => setEndTimestamp(e.target.value)}
-        required
+      type="date"
+      value={endDate}
+      onChange={(e) => setEndDate(e.target.value)}
+      required
       />
       <div className="take-data">
         <button type="submit" disabled={loading}>
           {loading ? 'Loading...' : 'Fetch Data'}
         </button>
       </div>
-      <div className="export">
-        {/* Export CSV cho dữ liệu hiện tại (cả 2 bảng) */}
-        <button
-          type="button"
-          onClick={() => exportCSV(data, isAggregated)}
-          disabled={data.length === 0}
-        >
-          Export CSV
-        </button>
-      </div>
+      <div>
+          <Link href="/RadarChart">  
+          <button className="bg-green-600 text-white px-4 py-2 rounded">
+            Radar Chart
+            </button>
+            </Link>
+        </div>
+        <div>
+          <Link href="/config-form">  
+          <button className="bg-green-600 text-white px-4 py-2 rounded">
+            Setup Value
+            </button>
+            </Link>
+        </div>
     </form>
-
-    {/* Bảng 1: Dữ liệu cảm biến truyền thống */}
-    {data.length > 0 && (
+    {isSingleDay && rawItems.length > 0 && (
       <>
-        <h2>Dữ liệu cảm biến truyền thống</h2>
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                {oldFields.map((col) => (
-                  <th key={col}>{fieldLabels[col] || col}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rawItems.map((item, index) => (
-                <tr key={index}>
-                  {oldFields.map((col) => {
-                    let value;
-                    if (col.startsWith('total_') && 'samples' in item) {
-                      const total = item[col];
-                      const samples = item.samples;
-                      value = samples ? (total / samples).toFixed(2) : '-';
-                    } else if (col === 'status') {
-                      value = evaluateStatus(item);
-                    } else {
-                      value = item[col] != null ? item[col] : '-';
-                    }
-                    return <td key={col}>{value}</td>;
-                  })}
-
-                </tr>
+      <h2>Sensor Data</h2>
+      <button onClick={() => exportCSV(rawItems, false,CSV_FIELDS)}>Export CSV</button>
+      <div className="table-container">
+      <table>
+        <thead>
+          <tr>
+            {oldFields.map((col) => (
+              <th key={col}>{FIELD_LABELS[col] || col}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rawItems.slice(0, 100).map((item, index) => (
+            <tr key={`raw-${index}`}>
+              {oldFields.map((col) => (
+                <td key={`${index}-${col}`}>
+                  {col === 'timestamp'
+                  ? formatRawTimestamp(item[col])
+                  : col === 'status'
+                  ? evaluateStatus(item)
+                  : item[col] ?? '-'}
+                </td>
               ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Bảng 2: Dữ liệu tính toán */}
-        <h2>Dữ liệu tính toán</h2>
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                {newFields.map((col) => (
-                  <th key={col}>{fieldLabels[col] || col}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {aggItems.map((item, index) => (
-                <tr key={index}>
-                  {newFields.map((col) => {
-                    let value;
-                    if ('samples' in item && item[`total_${col}`] !== undefined) {
-                      const total = item[`total_${col}`];
-                      const avg = total != null && item.samples ? total / item.samples : null;
-                      value = avg != null ? avg.toFixed(2) : '-';
-                    } else {
-                      value = item[col] != null ? item[col] : '-';
-                    }
-                    return <td key={col}>{value}</td>;
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      </div>
       </>
     )}
-
-    <SensorChart data={data} />
-  </div>
-);
-
+    {!isSingleDay && (data.hourly.length > 0 || data.daily.length > 0) && (
+      <>
+      <h2>Sensor Data</h2>
+      <button onClick={() => exportCSV(data.hourly, true,CSV_FIELDS)}>Export CSV</button>
+      <div className="table-container">
+      <table>
+        <thead>
+          <tr>
+            {baseFields.map((col) => (
+              <th key={col}>{FIELD_LABELS[col] || col}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {(data.hourly.length > 0 ? data.hourly : data.daily).map((item, index) => (
+            <tr key={`agg-${index}`}>
+              {baseFields.map((col) => (
+                <td key={`${index}-${col}`}>
+                  {col === 'timestamp'
+                  ? formatTimestamp(item[col])
+                  : col === 'status'
+                  ? evaluateStatus(item)
+                  : item[col] ?? '-'}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      </div>
+      </>
+    )}
+    
+    {data.daily.length > 0 && (
+      <>
+      <h2>Calculated Data</h2>
+      <button onClick={() => exportCSV(mergedDaily, true, CSV_FIELDS_DAILY)}>Export CSV</button>
+      <div className="table-container1">
+        <table>
+          <thead>
+            <tr>
+              {newFields.map((col) => (
+                <th key={col}>{FIELD_LABELS[col] || col}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {newData.map((item, index) => (
+              <tr key={`fixed-${index}`}>
+                {newFields.map((col) => (
+                  <td key={`${index}-${col}`}>
+                    {col === 'timestamp' ? formatDateOnly(item[col]) : item[col] ?? '-'}
+                    </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      </>
+    )}
+    {showChart && (
+      <>
+        <SensorChart data={oldData} />
+        <SensorChartGroup data={mergedDaily} />
+      </>
+    )}
+    </div>
+  );
 }
+    

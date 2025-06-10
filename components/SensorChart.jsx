@@ -16,12 +16,9 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 import 'chartjs-adapter-date-fns';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-
 ChartJS.register(LineElement, PointElement, Tooltip, Legend, CategoryScale, LinearScale, TimeScale, zoomPlugin);
-
 export default function SensorChart({ data }) {
   const hasData = Array.isArray(data) && data.length > 0;
-
   const [visibleLines, setVisibleLines] = useState({
     temperature: true,
     humidity: true,
@@ -33,12 +30,10 @@ export default function SensorChart({ data }) {
     soil_EC: false,
     soil_temp: false,
   });
-
   const rawStart = data?.[0]?.timestamp?.replace(/#\w+$/, '');
   const rawEnd = data?.[data.length - 1]?.timestamp?.replace(/#\w+$/, '');
   const startTime = new Date(rawStart);
   const endTimeFromData = new Date(rawEnd);
-
   const startTimestamp = data.startTimestamp
     ? new Date(data.startTimestamp)
     : startTime;
@@ -51,7 +46,6 @@ export default function SensorChart({ data }) {
     }
     return item[field] ?? null;
   };
-
   const colorMap = {
     temperature: 'rgb(255, 0, 55)',
     humidity: 'rgb(45, 156, 231)',
@@ -63,7 +57,6 @@ export default function SensorChart({ data }) {
     soil_EC: 'rgb(163, 176, 184)',
     soil_temp: 'rgb(28, 67, 25)',
   };
-
   const axisMap = {
     temperature: 'y1',
     humidity: 'y2',
@@ -75,7 +68,6 @@ export default function SensorChart({ data }) {
     soil_EC: 'y8',
     soil_temp: 'y9',
   };
-
   const labelMap = {
     temperature: '温度 (°C)',
     humidity: '湿度 (%)',
@@ -114,9 +106,7 @@ export default function SensorChart({ data }) {
           rawIndex: index,
         };
       });
-
-      const filteredData = processedData; // giữ nguyên
-
+      const filteredData = processedData;
       return {
         label: labelMap[field],
         data: filteredData,
@@ -127,47 +117,25 @@ export default function SensorChart({ data }) {
         spanGaps: true,
         hidden: !visibleLines[field],
         segment: {
- 
           borderDash: ctx => {
- 
             const { p0, p1 } = ctx.segment || {};
- 
             if (!p0 || !p1) return;
-
- 
             const index0 = ctx.p0DataIndex;
- 
             const index1 = ctx.p1DataIndex;
-
- 
             const rawIndex0 = filteredData[index0].rawIndex;
- 
             const rawIndex1 = filteredData[index1].rawIndex;
-
- 
             const hasZeroBetween = data
- 
             .slice(rawIndex0 + 1, rawIndex1)
- 
             .some(d => extractAvgValue(d, field) === 0);
-
- 
             if (hasZeroBetween) return [6, 6];
- 
             return undefined;
- 
           }
-
         }
-
       };
     });
 
-
     return { datasets };
-
   }, [data, visibleLines]);
-
 
   if (!data || data.length === 0) return <p>No data to show chart</p>;
   const options = {
@@ -195,8 +163,14 @@ export default function SensorChart({ data }) {
           },
         },
       },
+      legend: {
+        labels: {
+          usePointStyle: false,  // không dùng chấm nhỏ
+          boxWidth: 0,           // ẩn ô vuông màu
+        },
+        onClick: null,           // tắt sự kiện bật/tắt khi click legend
+      },
     },
-
     scales: {
       x: {
         type: 'time',
@@ -222,12 +196,12 @@ export default function SensorChart({ data }) {
         offset: true,
         title: { display: true, text: labelMap.temperature },
         min: -20,
-        max: 70,
+        max: 70,       
       },
       y2: {
         type: 'linear',
         display: visibleLines.humidity,
-        position: 'right',
+        position: 'left',
         offset: true,
         grid: { drawOnChartArea: false },
         title: { display: true, text: labelMap.humidity },
@@ -242,7 +216,7 @@ export default function SensorChart({ data }) {
         grid: { drawOnChartArea: false },
         title: { display: true, text: labelMap.CO2 },
         min: -20,
-        max: 1000,
+        max: 4000,
       },
       y4: {
         type: 'linear',
@@ -257,7 +231,7 @@ export default function SensorChart({ data }) {
       y5: {
         type: 'linear',
         display: visibleLines.VR,
-        position: 'left',
+        position: 'right',
         offset: true,
         grid: { drawOnChartArea: false },
         title: { display: true, text: labelMap.VR },
@@ -277,7 +251,7 @@ export default function SensorChart({ data }) {
       y7: {
         type: 'linear',
         display: visibleLines.soil_mois,
-        position: 'left',
+        position: 'right',
         offset: true,
         grid: { drawOnChartArea: false },
         title: { display: true, text: labelMap.soil_mois },
@@ -297,7 +271,7 @@ export default function SensorChart({ data }) {
       y9: {
         type: 'linear',
         display: visibleLines.soil_temp,
-        position: 'left',
+        position: 'right',
         offset: true,
         grid: { drawOnChartArea: false },
         title: { display: true, text: labelMap.soil_temp },
@@ -315,27 +289,31 @@ export default function SensorChart({ data }) {
   };
 
   return (
-    <div>
-      <div className="flex flex-wrap gap-2 mb-4">
-        {Object.keys(visibleLines).map(field => (
-          <button
-          key={field}
-          onClick={() => toggleLine(field)}
-          className={`px-3 py-1 rounded-full border text-sm font-medium`}
-          style={{
-            backgroundColor: visibleLines[field] ? colorMap[field] : '#e5e7eb', 
-            color: visibleLines[field] ? 'white' : '#4b5563', 
-            borderColor: visibleLines[field] ? colorMap[field] : '#d1d5db',
-          }}
+  <div className="flex gap-6" style={{ display: 'flex', minWidth: '1400px' }}>
+    <div className="flex flex-col w-[300px]" style={{ display: 'flex', flexDirection: 'column' }}>
+      {Object.keys(visibleLines).map(field => (
+        <button
+        key={field}
+        onClick={() => toggleLine(field)}
+        className={`px-3 py-2 border border-gray-300 text-left text-sm`}
+        style={{
+          backgroundColor: visibleLines[field] ? colorMap[field] : '#e5e7eb',
+          color: visibleLines[field] ? 'white' : '#4b5563',
+          width: '180px',
+          borderColor: visibleLines[field] ? colorMap[field] : '#d1d5db',
+        }}
         >
           {labelMap[field]}
           </button>
-
         ))}
-      </div>
-      <div style={{ height: '500px' }}>
-        {hasData ? <Line data={chartData} options={options} /> : <p>No data to show chart</p>}
-      </div>
     </div>
-  );
+    <div className="flex-1" style={{ height: '700px', width: '1500px' }}>
+      {hasData ? (
+        <Line data={chartData} options={options} />
+      ) : (
+        <p>No data to show chart</p>
+      )}
+    </div>
+  </div>
+);
 }

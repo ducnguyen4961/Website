@@ -22,7 +22,8 @@ input,
   padding: 8px;
   font-size: 14px;
 }
-.table-container {
+.table-container,
+.table-container1 {
   max-height: 300px;
   overflow-y: auto;
   border: 1px solid #2a0202;
@@ -61,16 +62,19 @@ th:nth-child(3), td:nth-child(3),
 th:nth-child(4), td:nth-child(4),
 th:nth-child(5), td:nth-child(5),
 th:nth-child(6), td:nth-child(6),
-th:nth-child(7), td:nth-child(7) {
-  width: 100px;
+th:nth-child(7), td:nth-child(7),
+th:nth-child(8), td:nth-child(8),
+th:nth-child(9), td:nth-child(9),
+th:nth-child(10), td:nth-child(10) {
+  width: 120px;
 }
-th:nth-child(8), td:nth-child(8) { width: 110px; } /* status */
+th:nth-child(11), td:nth-child(11) { width: 110px; }
 
 tr:hover {
   background-color: #f1f1f1;
 }
 canvas {
-  margin-top: 40px;
+  margin-top: 0 !important;
 }
 .take-data button {
   background-color: #007bff; 
@@ -87,4 +91,62 @@ canvas {
 
 .export button:hover {
   background-color: #66ff00;
+}
+.chart-item canvas {
+  display: block;
+}
+.charts-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;  
+  overflow-x: auto;  
+  gap: 20px;  
+  padding: 10px 0;
+}
+.chart-item {
+  flex: 0 0 auto;  
+  width: 1500px;  
+  height: 700px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.main-container {
+  min-width: 1500px;
+}
+.table-container {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 8px 12px;
+  text-align: left;
+  white-space: nowrap; 
+}
+.table-container1 th:nth-child(1),
+.table-container1 td:nth-child(1) {
+  width: 34%;
+}
+.table-container1 th:nth-child(2),
+.table-container1 td:nth-child(2) {
+  width: 33%;
+}
+.table-container1 th:nth-child(n+3),
+.table-container1 td:nth-child(n+3) {
+  width: 33%;
+}
+.fetch-data {
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #fffef8;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgb(9, 0, 0);
 }

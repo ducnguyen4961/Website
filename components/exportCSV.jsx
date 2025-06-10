@@ -1,6 +1,20 @@
-import { CSV_FIELDS, FIELD_LABELS, THRESHOLDS } from './constants';
+import { CSV_FIELDS, CSV_FIELDS_DAILY, FIELD_LABELS, THRESHOLDS } from './constants';
 
-export function exportCSV(data, isAggregated) {
+function formatDateTimeForCSV(field, rawTimestamp, fields) {
+  if (!rawTimestamp) return '';
+  if (field === 'timestamp') {
+    const clean = rawTimestamp.replace(/#\w+$/, '');
+    if (fields === CSV_FIELDS_DAILY) {
+      return clean.substring(0, 10); // YYYY-MM-DD
+    } else {
+      const formatted = clean.replace('T', ' ');
+      return formatted.length > 10 ? formatted : formatted + ' 00:00:00';
+    }
+  }
+  return rawTimestamp;
+}
+
+export function exportCSV(data, isAggregated, customFields) {
   if (!Array.isArray(data) || data.length === 0) {
     alert("データが存在しません");
     return;
@@ -12,7 +26,7 @@ export function exportCSV(data, isAggregated) {
     return `"${str}"`;
   };
 
-  const averageValue = (item, field) => {
+  const getValue = (item, field) => {
     if (isAggregated && item[`total_${field}`] != null && item.samples) {
       return item[`total_${field}`] / item.samples;
     }
@@ -21,7 +35,7 @@ export function exportCSV(data, isAggregated) {
 
   const evaluateStatus = (item) => {
     const messages = Object.keys(THRESHOLDS).map(field => {
-      const val = averageValue(item, field);
+      const val = getValue(item, field);
       const { min, max } = THRESHOLDS[field];
       if (val == null) return null;
       if (val < min) return `${FIELD_LABELS[field]}:L`;
@@ -29,30 +43,28 @@ export function exportCSV(data, isAggregated) {
       return null;
     }).filter(Boolean);
 
-    return messages.length ? messages.join(', ') : 'Good';
+    return messages.length ? messages.join(', ') : '正常';
   };
 
-  const header = CSV_FIELDS.map(field => escapeCSV(FIELD_LABELS[field] || field)).join(',');
+  const fields = customFields || CSV_FIELDS;
+  const header = fields.map(field => escapeCSV(FIELD_LABELS[field] || field)).join(',');
 
   const rows = data.map(item =>
-    CSV_FIELDS.map(field => {
+    fields.map(field => {
       let value;
-
       if (field === 'timestamp') {
-        value = item.timestamp?.replace('T', ' ').replace(/#\w+$/, '');
+        value = formatDateTimeForCSV(field, item.timestamp || '', fields);
       } else if (field === 'status') {
         value = evaluateStatus(item);
       } else {
-        const val = averageValue(item, field);
+        const val = getValue(item, field);
         value = typeof val === 'number' ? val.toFixed(2) : val;
       }
-
       return escapeCSV(value);
     }).join(',')
   );
 
   const csvContent = '\uFEFF' + [header, ...rows].join('\n');
-
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

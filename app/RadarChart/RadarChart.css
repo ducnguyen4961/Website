@@ -1,0 +1,96 @@
+.radar-block {
+  max-width: 1050px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.radar-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2f855a;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.radar-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.radar-form-group {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+
+.radar-form-group label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+  width: 100%;
+}
+
+.radar-form-group input,
+.radar-form-group select {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+
+.radar-button {
+  background-color: #2f855a;
+  color: white;
+  padding: 0.6rem 1rem;
+  width: 200px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.radar-button:hover {
+  background-color: #276749;
+}
+
+.radar-button:disabled {
+  background-color: #a0aec0;
+  cursor: not-allowed;
+}
+
+.radar-chart-container {
+  padding: 1rem;
+  background-color: #f7fafc;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+.radar-no-data {
+  text-align: center;
+  color: #718096;
+  font-style: italic;
+}
+.Back_to_dashboard{
+  background-color: #2f855a;
+  color: white;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.radar-input-wrapper {
+  width: 210px;
+  display: flex;
+  flex-direction: column;
+  position:relative;
+  left:5%;
+}
