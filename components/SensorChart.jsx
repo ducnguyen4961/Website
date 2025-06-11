@@ -29,6 +29,7 @@ export default function SensorChart({ data }) {
     soil_mois: false,
     soil_EC: false,
     soil_temp: false,
+    satur:true,
   });
   const rawStart = data?.[0]?.timestamp?.replace(/#\w+$/, '');
   const rawEnd = data?.[data.length - 1]?.timestamp?.replace(/#\w+$/, '');
@@ -56,6 +57,7 @@ export default function SensorChart({ data }) {
     soil_mois: 'rgb(182, 137, 14)',
     soil_EC: 'rgb(163, 176, 184)',
     soil_temp: 'rgb(28, 67, 25)',
+    satur: 'rgb(52, 126, 167)',
   };
   const axisMap = {
     temperature: 'y1',
@@ -67,6 +69,7 @@ export default function SensorChart({ data }) {
     soil_mois: 'y7',
     soil_EC: 'y8',
     soil_temp: 'y9',
+    satur: 'y10',
   };
   const labelMap = {
     temperature: '温度 (°C)',
@@ -78,6 +81,7 @@ export default function SensorChart({ data }) {
     soil_mois: '土壌水分 (%)',
     soil_EC: '土壌EC (mS/cm)',
     soil_temp: '土壌温度 (°C)',
+    satur:'水蒸気密度 (g/m3)',
   };
   const isAggregated = data.length > 0 && 'samples' in data[0];
   const fields = [
@@ -90,6 +94,7 @@ export default function SensorChart({ data }) {
     'soil_mois',
     'soil_EC',
     'soil_temp',
+    'satur',
   ];
   const chartData = useMemo(() => {
     if (!hasData) return { datasets: [] };
@@ -277,6 +282,16 @@ export default function SensorChart({ data }) {
         title: { display: true, text: labelMap.soil_temp },
         min: -10,
         max: 50,
+      },
+      y10: {
+        type: 'linear',
+        display: visibleLines.satur,
+        position: 'right',
+        offset: true,
+        grid: { drawOnChartArea: false },
+        title: { display: true, text: labelMap.satur },
+        min: 0,
+        max: 20,
       },
     },
   };
