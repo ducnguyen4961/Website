@@ -50,53 +50,65 @@ export default function ConfigForm() {
   };
 
   const handleSubmitCO2 = async (e) => {
+    console.log("Gửi CO2 với data:", targetCO2s);
   e.preventDefault();
   setMessage('送信中（CO₂制御）...');
 
   const messages = [];
+  const validRows = targetCO2s.filter((r) => {
+    const value = parseFloat(r.target_co2);
+    return r.house_device && !isNaN(value);
+  });
 
-  try {
-    const validRows = targetCO2s.filter((r) => {
-      const value = parseFloat(r.target_co2);
-      return r.house_device && !isNaN(value);
-    });
+  for (const row of validRows) {
+    try {
+      // Gửi POST
+      const res = await fetch('https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version2/send_value', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          device: row.house_device,
+          target_co2: parseFloat(row.target_co2),
+        }),
+      });
 
-    for (const row of validRows) {
-      try {
-        const res = await fetch('https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version2/send_value', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            device: row.house_device,
-            target_co2: parseFloat(row.target_co2),
-          }),
-        });
-
-        const data = await res.json();
-
-        if (data.message === "OK") {
-
-          messages.push(`✅ ${row.house_device}: コマンドを送信しました。`);
-
-        } else {
-
-          messages.push(`⚠️ ${row.house_device}: 予期しない応答です (${JSON.stringify(data)})`);
-
-        }
-
-      } catch (err) {
-        messages.push(`❌ ${row.house_device}: エラー発生 (${err.message})`);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
       }
+
+      if (res.ok) {
+  // Bắt đầu polling luôn
+  let ackReceived = false;
+  for (let i = 0; i < 7; i++) {
+    await new Promise((r) => setTimeout(r, 700));
+    const ackRes = await fetch(`https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version2/send_value?device=${row.house_device}`);
+    if (!ackRes.ok) continue;
+
+    const ackData = await ackRes.json();
+    if (ackData.ack === true) {
+      ackReceived = true;
+      break;
     }
-
-    setMessage(messages.join('\n'));
-  } catch (err) {
-    console.error(err);
-    setMessage('CO₂制御の送信に失敗しました!');
   }
+
+  if (ackReceived) {
+    messages.push(`✅ ${row.house_device}: コマンドを送信し、機器が受信しました。`);
+  } else {
+    messages.push(`⚠️ ${row.house_device}: コマンドは送信されましたが、機器からの応答がありません。`);
+  }
+} else {
+  messages.push(`❌ ${row.house_device}: コマンド送信に失敗しました (HTTP ${res.status})`);
+}
+
+    } catch (err) {
+      messages.push(`❌ ${row.house_device}: エラー発生 (${err.message})`);
+      console.error("Lỗi gửi CO2:", err);
+
+    }
+  }
+
+  setMessage(messages.join('\n'));
 };
-
-
   return (
     <div className="config-container">
       <h1 className="config-title">株間と条間を変更（ｃｍ）</h1>
