@@ -1,6 +1,6 @@
 'use client';
-import { useState } from 'react';
 import './config-form.css';
+import { useState, useEffect } from 'react';
 
 export default function ConfigForm() {
   const [rows, setRows] = useState(
@@ -10,19 +10,63 @@ export default function ConfigForm() {
     Array.from({ length: 3 }, () => ({ house_device: '', target_co2: '' }))
   );
   const [message, setMessage] = useState('');
+  const [savedInputs, setSavedInputs] = useState({
+    house_device: [],
+    kuboma: [],
+    jouma: [],
+  });
+
+  useEffect(() => {
+    const savedRows = localStorage.getItem('rows');
+    const savedCO2s = localStorage.getItem('targetCO2s');
+
+    if (savedRows) {
+      setRows(JSON.parse(savedRows));
+    }
+    if (savedCO2s) {
+      setTargetCO2s(JSON.parse(savedCO2s));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('rows', JSON.stringify(rows));
+  }, [rows]);
+
+  useEffect(() => {
+    localStorage.setItem('targetCO2s', JSON.stringify(targetCO2s));
+  }, [targetCO2s]);
+
+  // 既存のuseEffectの後に追加
+  useEffect(() => {
+    const savedInputs = localStorage.getItem('savedInputs');
+    if (savedInputs) {
+      setSavedInputs(JSON.parse(savedInputs));
+    }
+  }, []);
 
   const handleRowChange = (index, field, value) => {
-    const updated = [...rows];
-    updated[index][field] = value;
-    setRows(updated);
+    const newRows = [...rows];
+    newRows[index][field] = value;
+    setRows(newRows);
+
+    // 入力値を保存
+    if (value) {
+      setSavedInputs(prev => {
+        const updated = {
+          ...prev,
+          [field]: Array.from(new Set([...prev[field], value])),
+        };
+        localStorage.setItem('savedInputs', JSON.stringify(updated));
+        return updated;
+      });
+    }
   };
 
   const handleCO2Change = (index, field, value) => {
-    const updated = [...targetCO2s];
-    updated[index][field] = value;
-    setTargetCO2s(updated);
+    const newCO2s = [...targetCO2s];
+    newCO2s[index][field] = value;
+    setTargetCO2s(newCO2s);
   };
-
   const handleSubmitRow = async (e) => {
     e.preventDefault();
     setMessage('送信中（距離情報）...');
@@ -117,6 +161,7 @@ export default function ConfigForm() {
           <div key={index} className="config-row">
             <input
               type="text"
+              list="house-device-list"
               placeholder="デバイスID"
               value={row.house_device}
               onChange={(e) => handleRowChange(index, 'house_device', e.target.value)}
@@ -124,6 +169,7 @@ export default function ConfigForm() {
             />
             <input
               type="number"
+              list="kuboma-list"
               placeholder="株間 (cm)"
               value={row.kuboma}
               onChange={(e) => handleRowChange(index, 'kuboma', e.target.value)}
@@ -131,6 +177,7 @@ export default function ConfigForm() {
             />
             <input
               type="number"
+              list="jouma-list"
               placeholder="条間 (cm)"
               value={row.jouma}
               onChange={(e) => handleRowChange(index, 'jouma', e.target.value)}
@@ -140,7 +187,18 @@ export default function ConfigForm() {
         ))}
         <button type="submit" className="config-button">送信（距離）</button>
       </form>
-
+      <div className="diagram">
+        <svg width="800" height="200">
+          <image
+            href="/images/kabuma_joukan.png"
+            x="0"
+            y="0"
+            width="200"
+            height="200"
+            alt="サンプル画像"
+          />
+         </svg>
+      </div>  
       <h2 className="config-title">CO₂制御コマンドを送信</h2>
       <form onSubmit={handleSubmitCO2} className="config-form1">
         {targetCO2s.map((row, index) => (
@@ -151,6 +209,7 @@ export default function ConfigForm() {
               value={row.house_device}
               onChange={(e) => handleCO2Change(index, 'house_device', e.target.value)}
               className="config1-input"
+              autoComplete="on"
             />
             <input
               type="number"
@@ -158,6 +217,7 @@ export default function ConfigForm() {
               value={row.target_co2}
               onChange={(e) => handleCO2Change(index, 'target_co2', e.target.value)}
               className="config2-input"
+              autoComplete="on"
             />
           </div>
         ))}
@@ -165,6 +225,23 @@ export default function ConfigForm() {
       </form>
 
       {message && <p className="config-message">{message}</p>}
+
+      {/* datalist要素を追加 */}
+      <datalist id="house-device-list">
+        {savedInputs.house_device.map((value) => (
+          <option key={value} value={value} />
+        ))}
+      </datalist>
+      <datalist id="kuboma-list">
+        {savedInputs.kuboma.map((value) => (
+          <option key={value} value={value} />
+        ))}
+      </datalist>
+      <datalist id="jouma-list">
+        {savedInputs.jouma.map((value) => (
+          <option key={value} value={value} />
+        ))}
+      </datalist>
     </div>
   );
 }
