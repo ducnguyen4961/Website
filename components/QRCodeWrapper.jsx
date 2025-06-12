@@ -1,5 +1,5 @@
-// components/QRCodeWrapper.jsx
-"use client"; // Đảm bảo component này chỉ chạy ở client
+
+"use client"; 
 
 import React from 'react';
 import { QRCode } from 'qrcode.react';

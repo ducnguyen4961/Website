@@ -21,11 +21,11 @@ export default function ChangePasswordPage() {
   useEffect(() => {
     const user = userPool.getCurrentUser();
     if (!user) {
-      router.push('/login'); // chưa login thì đẩy về login luôn
+      router.push('/login'); 
     } else {
       user.getSession((err, session) => {
         if (err || !session.isValid()) {
-          router.push('/login'); // session hết hạn thì cũng về login
+          router.push('/login');
         }
       });
     }

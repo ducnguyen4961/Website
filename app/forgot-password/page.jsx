@@ -7,7 +7,7 @@ import "./forgot-password.css";
 import { useRouter } from 'next/navigation';
 
 export default function ForgotPasswordPage() {
-  const [stage, setStage] = useState(1); // 1 = enter email, 2 = enter code + new password
+  const [stage, setStage] = useState(1);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
         setMessage("Password has been reset. You can now log in.");
         setStage(1);
         setTimeout(() => {
-          router.push('/'); // chuyển hướng tới trang mong muốn
+          router.push('/');
         }, 1000);
       },
       onFailure: (err) => {

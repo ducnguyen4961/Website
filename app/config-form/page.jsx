@@ -107,7 +107,7 @@ export default function ConfigForm() {
   for (const row of validRows) {
     try {
       // Gửi POST
-      const res = await fetch('https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version2/send_value', {
+      const res = await fetch('https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/send_value', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -121,11 +121,10 @@ export default function ConfigForm() {
       }
 
       if (res.ok) {
-  // Bắt đầu polling luôn
   let ackReceived = false;
   for (let i = 0; i < 7; i++) {
     await new Promise((r) => setTimeout(r, 700));
-    const ackRes = await fetch(`https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version2/send_value?device=${row.house_device}`);
+    const ackRes = await fetch(`https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/send_value?device=${row.house_device}`);
     if (!ackRes.ok) continue;
 
     const ackData = await ackRes.json();

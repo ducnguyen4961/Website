@@ -1,13 +1,11 @@
 export function getProcessedData(items, durationDays) {
-  let detailedData = []; // Dành cho BẢNG 1
-  let summaryData = [];  // Dành cho BẢNG 2
+  let detailedData = []; 
+  let summaryData = []; 
 
-  // Lọc các loại dữ liệu từ timestamp
   const rawItems = items.filter(item => item.timestamp.startsWith("raw#"));
   const hourlyItems = items.filter(item => item.timestamp.endsWith("#hourly"));
   const dailyItems = items.filter(item => item.timestamp.endsWith("#daily"));
 
-  // === Xử lý dữ liệu BẢNG 1 ===
   if (durationDays === 1) {
     // Chỉ lấy raw data
     detailedData = rawItems;
@@ -28,7 +26,7 @@ export function getProcessedData(items, durationDays) {
       samples: item.samples,
     }));
   } else {
-    // Lấy các trường total_... từ dòng daily
+
     detailedData = dailyItems.map(item => ({
       timestamp: item.timestamp,
       total_CO2: item.total_CO2,
@@ -45,7 +43,7 @@ export function getProcessedData(items, durationDays) {
     }));
   }
 
-  // === Xử lý dữ liệu BẢNG 2 ===
+
   summaryData = dailyItems.map(item => ({
     timestamp: item.timestamp,
     avg_NIR: item.avg_NIR,

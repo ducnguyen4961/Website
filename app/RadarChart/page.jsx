@@ -43,7 +43,7 @@ export default function RadarChart() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch('https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version1/query_data', {
+      const res = await fetch('https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/query_data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

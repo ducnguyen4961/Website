@@ -170,10 +170,10 @@ export default function SensorChart({ data }) {
       },
       legend: {
         labels: {
-          usePointStyle: false,  // không dùng chấm nhỏ
-          boxWidth: 0,           // ẩn ô vuông màu
+          usePointStyle: false, 
+          boxWidth: 0,         
         },
-        onClick: null,           // tắt sự kiện bật/tắt khi click legend
+        onClick: null,      
       },
     },
     scales: {

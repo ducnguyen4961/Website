@@ -75,7 +75,7 @@ export default function DashboardPage() {
       setData({ daily: [], hourly: [] });
       if (isSingleDay) {
         const rawRes = await fetch(
-          `https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version2/sensor-data?device_id=${deviceId}&start_timestamp=${adjustedStart}&end_timestamp=${adjustedEnd}`,
+          `https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/sensor-data?device_id=${deviceId}&start_timestamp=${adjustedStart}&end_timestamp=${adjustedEnd}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (!rawRes.ok) throw new Error(`HTTP error! status: ${rawRes.status}`);
@@ -98,11 +98,11 @@ export default function DashboardPage() {
         })));
       }
       const aggRes = await fetch(
-        `https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version2/query_data?device_id=${deviceId}&start_timestamp=${adjustedStart}&end_timestamp=${adjustedEnd}`,
+        `https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/query_data?device_id=${deviceId}&start_timestamp=${adjustedStart}&end_timestamp=${adjustedEnd}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const laiRes = await fetch(
-        `https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version1/sensor-data`,
+        `https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/sensor-data`,
         {
           method: 'POST',
           headers: {
