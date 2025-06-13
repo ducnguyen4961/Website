@@ -74,7 +74,7 @@ export default function ConfigForm() {
       const validRows = rows.filter((r) => r.house_device);
       await Promise.all(
         validRows.map((row) =>
-          fetch('https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version1/query_data', {
+          fetch('https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/query_data', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
