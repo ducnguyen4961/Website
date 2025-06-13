@@ -6,9 +6,7 @@ export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-
   useEffect(() => {
-
     const email = localStorage.getItem("userEmail");
     if (email) {
       setUser(email);

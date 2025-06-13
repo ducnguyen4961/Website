@@ -1,7 +1,7 @@
 // components/ClientLayout.jsx
 'use client';
 import { useEffect, useState } from 'react';
-import { AuthProvider } from "@/context/AuthContext";
+import { AuthProvider } from "@/context/Authcontext";
 
 export default function ClientLayout({ children }) {
   const [userEmail, setUserEmail] = useState(null);
