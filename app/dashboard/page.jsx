@@ -214,7 +214,7 @@ export default function DashboardPage() {
   });
 return (
   <div className="fetch-data">
-    <h1>🌱 IoT Greenhouse Monitoring Dashboard 🌱</h1>
+    <h1>🌱 センサーモニタ 🌱</h1>
     <form onSubmit={fetchData} id="filterForm">
       <input
         type="text"
@@ -245,20 +245,20 @@ return (
       />
       <div className="take-data">
         <button type="submit" disabled={loading}>
-          {loading ? 'Loading...' : 'Fetch Data'}
+          {loading ? 'Loading...' : 'データ取得'}
         </button>
       </div>
       <div>
           <Link href="/RadarChart">  
           <button className="bg-green-600 text-white px-4 py-2 rounded">
-            Radar Chart
+            レーダーチャート
             </button>
             </Link>
         </div>
         <div>
           <Link href="/config-form">  
           <button className="bg-green-600 text-white px-4 py-2 rounded">
-            Setup Value
+            ユーザ設定
             </button>
             </Link>
         </div>
@@ -277,7 +277,7 @@ return (
           </tr>
         </thead>
         <tbody>
-          {rawItems.slice(0, 100).map((item, index) => (
+          {rawItems.slice(-1).map((item, index) => (
             <tr key={`raw-${index}`}>
               {oldFields.map((col) => (
                 <td key={`${index}-${col}`}>

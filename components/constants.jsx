@@ -59,7 +59,7 @@ export const FIELD_LABELS = {
   avg_VR: 'Avg.VR(mV)',
   nir_vr_ratio: 'Avg.NIR/VR(mV)',
   area_per_plant: '株当たり葉面積(cm2P-1)',
-  satur: '水蒸気密度(g/m3)'
+  satur: '飽差(g/m3)'
 };
 
 

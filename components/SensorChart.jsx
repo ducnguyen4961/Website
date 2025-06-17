@@ -304,10 +304,11 @@ export default function SensorChart({ data }) {
   };
 
   return (
-  <div className="flex gap-6" style={{ display: 'flex', minWidth: '1400px' }}>
-    <div className="flex flex-col w-[300px]" style={{ display: 'flex', flexDirection: 'column' }}>
-      {Object.keys(visibleLines).map(field => (
-        <button
+<div className="flex flex-col gap-6 min-w-[1400px]">
+  {/* ボタンのリストを囲むコンテナ */}
+  <div className="flex flex-row w-auto gap-4">
+    {Object.keys(visibleLines).map(field => (
+      <button
         key={field}
         onClick={() => toggleLine(field)}
         className={`px-3 py-2 border border-gray-300 text-left text-sm`}
@@ -317,18 +318,20 @@ export default function SensorChart({ data }) {
           width: '180px',
           borderColor: visibleLines[field] ? colorMap[field] : '#d1d5db',
         }}
-        >
-          {labelMap[field]}
-          </button>
-        ))}
-    </div>
-    <div className="flex-1" style={{ height: '700px', width: '1500px' }}>
-      {hasData ? (
-        <Line data={chartData} options={options} />
-      ) : (
-        <p>No data to show chart</p>
-      )}
-    </div>
+      >
+        {labelMap[field]}
+      </button>
+    ))}
   </div>
+
+  {/* グラフコンテナ */}
+  <div className="w-full" style={{ height: '700px' }}>
+    {hasData ? (
+      <Line data={chartData} options={options} />
+    ) : (
+      <p>No data to show chart</p>
+    )}
+  </div>
+</div>
 );
 }
