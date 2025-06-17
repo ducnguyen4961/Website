@@ -7,10 +7,8 @@ export function getProcessedData(items, durationDays) {
   const dailyItems = items.filter(item => item.timestamp.endsWith("#daily"));
 
   if (durationDays === 1) {
-    // Chỉ lấy raw data
     detailedData = rawItems;
   } else if (durationDays <= 40) {
-    // Lấy các trường total_... từ dòng hourly
     detailedData = hourlyItems.map(item => ({
       timestamp: item.timestamp,
       total_CO2: item.total_CO2,

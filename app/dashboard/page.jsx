@@ -13,13 +13,15 @@ export default function DashboardPage() {
   const [data, setData] = useState({ daily: [], hourly: [] });
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [deviceId, setDeviceId] = useState('');
   const [laiAreaData, setLaiAreaData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [rawItems, setRawItems] = useState([]);
   const [aggItems, setAggItems] = useState([]);
+  const [houseId, setHouseId] = useState('');
+  const [deviceSuffix, setDeviceSuffix] = useState('');
   const [showChart, setShowChart] = useState(false);
   const [isSingleDay, setIsSingleDay] = useState(true);
+  const deviceId = `${houseId}#${deviceSuffix}`;
 
   const oldFields = [
     'house_device', 'timestamp', 'temperature', 'humidity', 'CO2',
@@ -60,8 +62,8 @@ export default function DashboardPage() {
 
   const fetchData = async (e) => {
     e.preventDefault();
-    if (!deviceId || !startDate || !endDate) {
-      alert('Please fill Device ID, Start and End Date');
+    if (!houseId || !deviceSuffix || !startDate || !endDate) {
+      alert('Please fill all required fields');
       return;
     }
     setShowChart(true);  
@@ -73,9 +75,10 @@ export default function DashboardPage() {
       const isSingleDay = isWithinOneDay(startDate, endDate);
       setRawItems([]);
       setData({ daily: [], hourly: [] });
+      const encodedDeviceId = encodeURIComponent(deviceId);
       if (isSingleDay) {
         const rawRes = await fetch(
-          `https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/sensor-data?device_id=${deviceId}&start_timestamp=${adjustedStart}&end_timestamp=${adjustedEnd}`,
+          `https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/sensor-data?device_id=${encodedDeviceId}&start_timestamp=${adjustedStart}&end_timestamp=${adjustedEnd}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (!rawRes.ok) throw new Error(`HTTP error! status: ${rawRes.status}`);
@@ -98,7 +101,7 @@ export default function DashboardPage() {
         })));
       }
       const aggRes = await fetch(
-        `https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/query_data?device_id=${deviceId}&start_timestamp=${adjustedStart}&end_timestamp=${adjustedEnd}`,
+        `https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/query_data?device_id=${encodedDeviceId}&start_timestamp=${adjustedStart}&end_timestamp=${adjustedEnd}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const laiRes = await fetch(
@@ -215,11 +218,19 @@ return (
     <form onSubmit={fetchData} id="filterForm">
       <input
         type="text"
-        value={deviceId}
-        onChange={(e) => setDeviceId(e.target.value)}
-        placeholder="Device ID (required)"
+        value={houseId}
+        onChange={(e) => setHouseId(e.target.value)}
+        placeholder="House ID (e.g. H0001D002)"
         required
       />
+      <input
+      type="text"
+      placeholder="Device ID (e.g. 0000)"
+      value={deviceSuffix}
+      onChange={(e) => setDeviceSuffix(e.target.value)}
+      required
+      />
+
       <input
       type="date"
       value={startDate}
