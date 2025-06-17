@@ -15,6 +15,9 @@ export default function ConfigForm() {
     kuboma: [],
     jouma: [],
   });
+  const [currentDevice, setCurrentDevice] = useState(
+    Array.from({ length: 3 }, () => ({ house_device: '', kuboma: '', jouma: '' }))
+  );
 
   useEffect(() => {
     const savedRows = localStorage.getItem('rows');
@@ -74,7 +77,7 @@ export default function ConfigForm() {
       const validRows = rows.filter((r) => r.house_device);
       await Promise.all(
         validRows.map((row) =>
-          fetch('https://prt5eqb726.execute-api.ap-northeast-1.amazonaws.com/version1/query_data', {
+          fetch('https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/query_data', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -92,9 +95,39 @@ export default function ConfigForm() {
       setMessage('距離情報の更新に失敗しました!');
     }
   };
+  const handlesubmitkabumajoukan = async (e) => {
+    e.preventDefault();
+    setMessage('現在値を取得中...');
+    
+    try {
+      const promises = currentDevice.map(async (device) => {
+        if (!device.house_device) return device;
 
-  const handleSubmitCO2 = async (e) => {
-    console.log("Gửi CO2 với data:", targetCO2s);
+        const response = await fetch(
+          `https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/kabu_jou?device_id=${device.house_device}`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return {
+          ...device,
+          kuboma: data.kuboma || '',
+          jouma: data.jouma || ''
+        };
+      });
+
+      const results = await Promise.all(promises);
+      setCurrentDevice(results);
+      setMessage('現在値を取得しました');
+    } catch (error) {
+      console.error('Error:', error);
+      setMessage('現在値の取得に失敗しました');
+    }
+  };
+const handleSubmitCO2 = async (e) => {
   e.preventDefault();
   setMessage('送信中（CO₂制御）...');
 
@@ -106,7 +139,7 @@ export default function ConfigForm() {
 
   for (const row of validRows) {
     try {
-      // Gửi POST
+      // POST送信
       const res = await fetch('https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/send_value', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -120,85 +153,121 @@ export default function ConfigForm() {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
 
-      if (res.ok) {
-  let ackReceived = false;
-  for (let i = 0; i < 7; i++) {
-    await new Promise((r) => setTimeout(r, 700));
-    const ackRes = await fetch(`https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/send_value?device=${row.house_device}`);
-    if (!ackRes.ok) continue;
+      // ACK確認
+      let ackReceived = false;
+      let ackReturnVal = null;
 
-    const ackData = await ackRes.json();
-    if (ackData.ack === true) {
-      ackReceived = true;
-      break;
-    }
-  }
+      for (let i = 0; i < 7; i++) {
+        await new Promise((r) => setTimeout(r, 700));
+        const ackRes = await fetch(`https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/send_value?device=${row.house_device}`);
+        if (!ackRes.ok) continue;
 
-  if (ackReceived) {
-    messages.push(`✅ ${row.house_device}: コマンドを送信し、機器が受信しました。`);
-  } else {
-    messages.push(`⚠️ ${row.house_device}: コマンドは送信されましたが、機器からの応答がありません。`);
-  }
-} else {
-  messages.push(`❌ ${row.house_device}: コマンド送信に失敗しました (HTTP ${res.status})`);
-}
+        const ackData = await ackRes.json();
+        console.log("ACK Data:", ackData); // 確認ログ追加
 
+        if (ackData.ack === true) {
+          ackReceived = true;
+          if (ackData.return_val !== undefined && ackData.return_val !== null) {
+            ackReturnVal = ackData.return_val;
+          }
+          break;
+        }
+      }
+
+      if (ackReceived) {
+        if (ackReturnVal !== null) {
+          messages.push(`✅ ${row.house_device}: キャリブレーションが完了しました。CO₂補正量　 ${ackReturnVal} 　ppm`);
+        } else {
+          messages.push(`✅ ${row.house_device}: キャリブレーションが完了しましたが、補正量データは取得できませんでした。`);
+        }
+      } else {
+        messages.push(`⚠️ ${row.house_device}: コマンドは送信されましたが、機器からの応答がありません。`);
+      }
     } catch (err) {
       messages.push(`❌ ${row.house_device}: エラー発生 (${err.message})`);
-      console.error("Lỗi gửi CO2:", err);
-
+      console.error("CO2送信エラー:", err);
     }
   }
 
   setMessage(messages.join('\n'));
 };
+
+
   return (
     <div className="config-container">
       <h1 className="config-title">株間と条間を変更（ｃｍ）</h1>
-      <form onSubmit={handleSubmitRow} className="config-form">
-        {rows.map((row, index) => (
-          <div key={index} className="config-row">
-            <input
-              type="text"
-              list="house-device-list"
-              placeholder="デバイスID"
-              value={row.house_device}
-              onChange={(e) => handleRowChange(index, 'house_device', e.target.value)}
-              className="config-input"
-            />
-            <input
-              type="number"
-              list="kuboma-list"
-              placeholder="株間 (cm)"
-              value={row.kuboma}
-              onChange={(e) => handleRowChange(index, 'kuboma', e.target.value)}
-              className="config-input"
-            />
-            <input
-              type="number"
-              list="jouma-list"
-              placeholder="条間 (cm)"
-              value={row.jouma}
-              onChange={(e) => handleRowChange(index, 'jouma', e.target.value)}
-              className="config-input"
-            />
-          </div>
-        ))}
-        <button type="submit" className="config-button">送信（距離）</button>
-      </form>
-      <div className="diagram">
-        <svg width="800" height="200">
-          <image
-            href="/images/kabuma_joukan.png"
-            x="0"
-            y="0"
-            width="200"
-            height="200"
-            alt="サンプル画像"
-          />
-         </svg>
-      </div>  
-      <h2 className="config-title">CO₂制御コマンドを送信</h2>
+      <div className="form-container">
+        <form onSubmit={handleSubmitRow} className="config-form">
+          <div className="positioned-label">株間 　　　　　　　　　　　　条間</div>      
+          {rows.map((row, index) => (
+            <div key={index} className="config-row">
+              <input
+                type="text"
+                list="house-device-list"
+                placeholder="デバイスID"
+                value={row.house_device}
+                onChange={(e) => handleRowChange(index, 'house_device', e.target.value)}
+                className="config-input"
+              />
+              <input
+                type="number"
+                list="kuboma-list"
+                placeholder="株間 (cm)"
+                value={row.kuboma}
+                onChange={(e) => handleRowChange(index, 'kuboma', e.target.value)}
+                className="config-input"
+              />
+              <input
+                type="number"
+                list="jouma-list"
+                placeholder="条間 (cm)"
+                value={row.jouma}
+                onChange={(e) => handleRowChange(index, 'jouma', e.target.value)}
+                className="config-input"
+              />
+            </div>
+          ))}
+          <button type="submit" className="config-button">送信（距離）</button>
+        </form>
+
+<form onSubmit={handlesubmitkabumajoukan} className="config-form">
+  <div className="positioned-label">株間 　　　　　　　　　　　　条間</div>  
+  {currentDevice.map((device, index) => (
+    <div key={index} className="config-row">
+      <input
+        type="text"
+        list="house-device-list"
+        placeholder="デバイスID"
+        value={device.house_device}
+        onChange={(e) => {
+          const newDevices = [...currentDevice];
+          newDevices[index] = { ...device, house_device: e.target.value };
+          setCurrentDevice(newDevices);
+        }}
+        className="config-input"
+      />
+      <input
+        type="text"
+        value={device.kuboma}
+        readOnly
+        placeholder="株間 (cm)"
+        className="config-input"
+      />
+      <input
+        type="text"
+        value={device.jouma}
+        readOnly
+        placeholder="条間 (cm)"
+        className="config-input"
+      />
+    </div>
+  ))}
+  <button type="submit" className="config-button">現在値を取得</button>
+</form>
+      </div>
+
+
+      <h2 className="config-title">CO₂ キャリブレーション(校正)</h2>
       <form onSubmit={handleSubmitCO2} className="config-form1">
         {targetCO2s.map((row, index) => (
           <div key={index} className="config1-row">
