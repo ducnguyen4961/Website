@@ -81,7 +81,7 @@ export default function SensorChart({ data }) {
     soil_mois: '土壌水分 (%)',
     soil_EC: '土壌EC (mS/cm)',
     soil_temp: '土壌温度 (°C)',
-    satur:'水蒸気密度 (g/m3)',
+    satur:'飽差 (g/m3)',
   };
   const isAggregated = data.length > 0 && 'samples' in data[0];
   const fields = [
