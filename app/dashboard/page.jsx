@@ -214,7 +214,7 @@ export default function DashboardPage() {
   });
 return (
   <div className="fetch-data">
-    <h1>🌱 センサーモニタ 🌱</h1>
+    <h1>🌱 センサモニタ 🌱</h1>
     <form onSubmit={fetchData} id="filterForm">
       <input
         type="text"
@@ -265,7 +265,7 @@ return (
     </form>
     {isSingleDay && rawItems.length > 0 && (
       <>
-      <h2>Sensor Data</h2>
+      <h2>センサデータ</h2>
       <button onClick={() => exportCSV(rawItems, false,CSV_FIELDS)}>Export CSV</button>
       <div className="table-container">
       <table>
@@ -297,7 +297,7 @@ return (
     )}
     {!isSingleDay && (data.hourly.length > 0 || data.daily.length > 0) && (
       <>
-      <h2>Sensor Data</h2>
+      <h2>センサデータ</h2>
       <button onClick={() => exportCSV(data.hourly, true,CSV_FIELDS)}>Export CSV</button>
       <div className="table-container">
       <table>
@@ -309,8 +309,8 @@ return (
           </tr>
         </thead>
         <tbody>
-          {(data.hourly.length > 0 ? data.hourly : data.daily).map((item, index) => (
-            <tr key={`agg-${index}`}>
+              {(data.hourly.length > 0 ? data.hourly : data.daily).slice(-1).map((item, index) => (
+                <tr key={`agg-${index}`}>
               {baseFields.map((col) => (
                 <td key={`${index}-${col}`}>
                   {col === 'timestamp'
@@ -330,7 +330,7 @@ return (
     
     {data.daily.length > 0 && (
       <>
-      <h2>Calculated Data</h2>
+      <h2>計算結果</h2>
       <button onClick={() => exportCSV(mergedDaily, true, CSV_FIELDS_DAILY)}>Export CSV</button>
       <div className="table-container1">
         <table>
@@ -342,7 +342,7 @@ return (
             </tr>
           </thead>
           <tbody>
-            {newData.map((item, index) => (
+            {newData.slice(-2).map((item, index) => (
               <tr key={`fixed-${index}`}>
                 {newFields.map((col) => (
                   <td key={`${index}-${col}`}>
