@@ -158,3 +158,12 @@ main {
   padding: 20px;
   min-height: calc(100vh - 100px);
 }
+.logo-link {
+  display: inline-block;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+
+.logo-link:hover {
+  opacity: 0.8;
+}

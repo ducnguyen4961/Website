@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './dashboard.css';
 import { exportCSV } from '@/components/exportCSV'; 
 import dynamic from 'next/dynamic';
@@ -21,6 +21,10 @@ export default function DashboardPage() {
   const [deviceSuffix, setDeviceSuffix] = useState('');
   const [showChart, setShowChart] = useState(false);
   const [isSingleDay, setIsSingleDay] = useState(true);
+  const [savedInputs, setSavedInputs] = useState({
+    houseId: [],
+    deviceSuffix: []
+  });
   const deviceId = `${houseId}#${deviceSuffix}`;
 
   const oldFields = [
@@ -212,24 +216,74 @@ export default function DashboardPage() {
     });
     return obj;
   });
+  useEffect(() => {
+    const savedInputs = localStorage.getItem('dashboardInputs');
+    if (savedInputs) {
+      setSavedInputs(JSON.parse(savedInputs));
+    }
+  }, []);
+  const handleHouseIdChange = (e) => {
+    const value = e.target.value;
+    setHouseId(value);
+    
+    if (value) {
+      setSavedInputs(prev => {
+        const updated = {
+          ...prev,
+          houseId: Array.from(new Set([...prev.houseId, value]))
+        };
+        localStorage.setItem('dashboardInputs', JSON.stringify(updated));
+        return updated;
+      });
+    }
+  };
+
+  const handleDeviceSuffixChange = (e) => {
+    const value = e.target.value;
+    setDeviceSuffix(value);
+    
+    if (value) {
+      setSavedInputs(prev => {
+        const updated = {
+          ...prev,
+          deviceSuffix: Array.from(new Set([...prev.deviceSuffix, value]))
+        };
+        localStorage.setItem('dashboardInputs', JSON.stringify(updated));
+        return updated;
+      });
+    }
+  };
 return (
   <div className="fetch-data">
     <h1>🌱 センサモニタ 🌱</h1>
     <form onSubmit={fetchData} id="filterForm">
-      <input
-        type="text"
-        value={houseId}
-        onChange={(e) => setHouseId(e.target.value)}
-        placeholder="House ID (e.g. H0001D002)"
-        required
-      />
-      <input
-      type="text"
-      placeholder="Device ID (e.g. 0000)"
-      value={deviceSuffix}
-      onChange={(e) => setDeviceSuffix(e.target.value)}
-      required
-      />
+  <input
+    type="text"
+    value={houseId}
+    onChange={handleHouseIdChange}
+    placeholder="House ID を入力"
+    list="house-id-list"
+    required
+  />
+  <datalist id="house-id-list">
+    {savedInputs.houseId?.map((value) => (
+      <option key={value} value={value} />
+    ))}
+  </datalist>
+
+  <input
+    type="text"
+    placeholder="子機番号 を入力"
+    value={deviceSuffix}
+    onChange={handleDeviceSuffixChange}
+    list="device-suffix-list"
+    required
+  />
+  <datalist id="device-suffix-list">
+    {savedInputs.deviceSuffix?.map((value) => (
+      <option key={value} value={value} />
+    ))}
+  </datalist>
 
       <input
       type="date"
@@ -365,4 +419,3 @@ return (
     </div>
   );
 }
-    

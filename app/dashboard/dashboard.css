@@ -150,3 +150,37 @@ th, td {
   border-radius: 12px;
   box-shadow: 0 4px 10px rgb(9, 0, 0);
 }
+.encoded-device-form {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+.encoded-device-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.sensor-value {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.sensor-value label {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.sensor-value span {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
