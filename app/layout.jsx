@@ -29,10 +29,14 @@ export default function RootLayout({ children }) {
             </div>
             
             <div className="right-link">
-              <a href="/" className="home-btn">Home</a>
-              <a href="/products" className="products-btn">Products</a>
-              <a href="/about" className="about-btn">About</a>
-              <a href="/contact" className="contact-btn">Contact</a>
+
+              <a
+                href="https://yamamoto-denki.jp/product-line/agricultural-products/"
+                className="products-btn"
+              >
+                Products
+              </a>
+
             </div>
               
             <div className="left-link">
