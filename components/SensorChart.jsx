@@ -23,13 +23,13 @@ export default function SensorChart({ data }) {
     temperature: true,
     humidity: true,
     CO2: true,
-    NIR: true,
+    NIR: false,
     VR: false,
     PPFD: false,
     soil_mois: false,
     soil_EC: false,
     soil_temp: false,
-    satur:true,
+    satur:false,
   });
   const rawStart = data?.[0]?.timestamp?.replace(/#\w+$/, '');
   const rawEnd = data?.[data.length - 1]?.timestamp?.replace(/#\w+$/, '');
@@ -303,35 +303,72 @@ export default function SensorChart({ data }) {
     }));
   };
 
-  return (
-<div className="flex flex-col gap-6 min-w-[1400px]">
-  {/* ボタンのリストを囲むコンテナ */}
-  <div className="flex flex-row w-auto gap-4">
-    {Object.keys(visibleLines).map(field => (
-      <button
-        key={field}
-        onClick={() => toggleLine(field)}
-        className={`px-3 py-2 border border-gray-300 text-left text-sm`}
-        style={{
-          backgroundColor: visibleLines[field] ? colorMap[field] : '#e5e7eb',
-          color: visibleLines[field] ? 'white' : '#4b5563',
-          width: '180px',
-          borderColor: visibleLines[field] ? colorMap[field] : '#d1d5db',
-        }}
-      >
-        {labelMap[field]}
-      </button>
-    ))}
-  </div>
+  // Multiple Select用のスタイルを追加
+  const selectStyle = {
+    backgroundColor: 'white',
+    padding: '8px',
+    border: '1px solid #d1d5db',
+    borderRadius: '4px',
+    maxHeight: '100px',
+    overflowY: 'auto'
+  };
 
-  {/* グラフコンテナ */}
-  <div className="w-full" style={{ height: '700px' }}>
-    {hasData ? (
-      <Line data={chartData} options={options} />
-    ) : (
-      <p>No data to show chart</p>
-    )}
+  const optionStyle = (isSelected, color) => ({
+    padding: '4px 8px',
+    backgroundColor: isSelected ? color : 'transparent',
+    color: isSelected ? 'white' : '#4b5563',
+    cursor: 'pointer',
+    margin: '2px 0',
+    borderRadius: '2px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px'
+  });
+
+  return (
+  <div className="flex flex-col gap-6">
+    {/* ボタンリストをMultiple Selectに変更 */}
+    <div className="w-64" style={selectStyle}>
+      {Object.keys(visibleLines).map(field => (
+        <div
+          key={field}
+          onClick={() => toggleLine(field)}
+          style={optionStyle(visibleLines[field], colorMap[field])}
+        >
+          <input
+            type="checkbox"
+            checked={visibleLines[field]}
+            onChange={() => {}}
+            style={{ cursor: 'pointer' }}
+          />
+          <span>{labelMap[field]}</span>
+        </div>
+      ))}
+    </div>
+
+    {/* グラフコンテナ - スクロール可能エリア */}
+    <div className="chart-container" style={{ height: '400px', overflow: 'hidden' }}>
+      <div className="chart-scroll-area" style={{ 
+        width: '100%', 
+        height: '100%',
+        overflowX: 'auto',
+        overflowY: 'hidden'
+      }}>
+        <div style={{ minWidth: '2000px', height: '100%' }}>
+          {hasData ? (
+            <Line 
+              data={chartData} 
+              options={{
+                ...options,
+                maintainAspectRatio: false
+              }} 
+            />
+          ) : (
+            <p>No data to show chart</p>
+          )}
+        </div>
+      </div>
+    </div>
   </div>
-</div>
 );
 }

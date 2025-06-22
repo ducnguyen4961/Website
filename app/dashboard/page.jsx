@@ -32,7 +32,7 @@ export default function DashboardPage() {
     'soil_mois', 'soil_EC', 'soil_temp','satur', 'VR', 'PPFD', 'NIR', 'status'
   ];
   const newFields = [
-    'house_device', 'timestamp','avg_NIR', 'avg_PPFD', 'avg_VR', 'lai', 'nir_vr_ratio','area_per_plant'
+    'house_device', 'timestamp','lai', 'area_per_plant'
   ];
   const baseFields = [
     'house_device', 'timestamp', 'temperature', 'humidity', 'CO2',
@@ -416,6 +416,6 @@ return (
         <SensorChartGroup data={mergedDaily} />
       </>
     )}
-    </div>
-  );
+  </div>
+);
 }
