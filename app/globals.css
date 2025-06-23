@@ -211,3 +211,63 @@ main {
 .w-64::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+@media screen and (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px;
+  }
+
+  .logo {
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .logo img {
+    height: 60px;
+    margin-right: 10px;
+  }
+
+  .right-link,
+  .left-link {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .right-link a,
+  .left-link a,
+  .profile-btn {
+    padding: 8px 12px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .dropdown-content {
+    right: 0;
+    left: 0;
+    top: auto;
+    position: static;
+    margin-top: 10px;
+  }
+
+  .logout-btn {
+    width: 100%;
+  }
+
+  main {
+    padding: 10px;
+  }
+
+  .w-64 {
+    width: 100%;
+  }
+
+  .chart-scroll-area::-webkit-scrollbar {
+    height: 6px;
+  }
+}
+

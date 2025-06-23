@@ -25,11 +25,18 @@ input,
 .table-container,
 .table-container1 {
   max-height: 300px;
+
   overflow-y: auto;
-  border: 1px solid #2a0202;
+  border: 1px solid #2525250e;
   margin-top: 20px;
 }
-
+.table-container2 {
+  max-height: 300px;
+  max-width: 40%;
+  overflow-y: auto;
+  border: 1px solid #2525250e;
+  margin-top: 0px;
+}
 table {
   width: 100%;
   border-collapse: collapse;
@@ -53,7 +60,7 @@ tbody tr:nth-child(odd) {
 }
 /* 通常のテーブルヘッダー */
 th {
-  background-color: #e3f3e8; /* 淡いグリーン */
+  background-color: #eef3e3; /* 淡いグリーン */
   color: #222;               /* 柔らかい黒 */
   position: sticky;
   top: 0;
@@ -67,7 +74,7 @@ th {
 }
 /* アルタネート背景（例：注目の列） */
 th.alt-bg {
-  background-color: #e5f2fa; /* 淡い水色 */
+  background-color: #e5f9fa; /* 淡い水色 */
   color: #222;
 }
 
@@ -201,4 +208,75 @@ th, td {
   font-size: 1.2rem;
   font-weight: 600;
   color: #333;
+}
+
+/* === レスポンシブ対応 === */
+@media screen and (max-width: 768px) {
+  body {
+    margin: 20px;
+  }
+
+  form {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  input,
+  .fetch-data button {
+    font-size: 16px;
+    width: 100%;
+  }
+
+  .fetch-data {
+    padding: 1rem;
+    width: 100%;
+  }
+
+  .table-container,
+  .table-container1,
+  .table-container2 {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  table {
+    font-size: 12px;
+  }
+
+  th,
+  td {
+    padding: 6px;
+  }
+
+  .chart-item {
+    width: 1000px; /* スマホでも表示できるよう横スクロール */
+    height: 500px;
+  }
+
+  .charts-container {
+    gap: 10px;
+    padding: 10px 0;
+  }
+
+  .main-container {
+    min-width: unset;
+  }
+
+  .encoded-device-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sensor-value {
+    padding: 0.5rem;
+  }
+
+  .sensor-value label {
+    font-size: 0.8rem;
+  }
+
+  .sensor-value span {
+    font-size: 1rem;
+  }
 }

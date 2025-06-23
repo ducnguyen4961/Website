@@ -312,45 +312,63 @@ export default function SensorChart({ data }) {
     padding: '8px',
     border: '1px solid #d1d5db',
     borderRadius: '4px',
-    maxHeight: '100px',
-    overflowY: 'auto'
+    maxHeight: '150px',
+    overflowY: 'auto',
+    width: '100%', // ← 追加
+    minWidth: '200px',
+    maxWidth: '300px' // ← スマホでの横幅制限
   };
 
-  const optionStyle = (isSelected, color) => ({
-    padding: '4px 8px',
-    backgroundColor: isSelected ? color : 'transparent',
-    color: isSelected ? 'white' : '#4b5563',
-    cursor: 'pointer',
-    margin: '2px 0',
-    borderRadius: '2px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px'
-  });
+const optionStyle = (isSelected, color) => ({
+  padding: '6px 8px',
+  backgroundColor: isSelected ? color : 'transparent',
+  color: isSelected ? 'white' : '#4b5563',
+  cursor: 'pointer',
+  margin: '2px 0',
+  borderRadius: '4px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  fontSize: '14px',
+  whiteSpace: 'nowrap',        // ← 折り返し防止
+  overflow: 'hidden',          // ← はみ出し防止
+});
 
   return (
   <div className="flex flex-col gap-6">
     {/* ボタンリストをMultiple Selectに変更 */}
-    <div className="w-64" style={selectStyle}>
+    <div className="w-full max-w-xs" style={selectStyle}>
       {Object.keys(visibleLines).map(field => (
         <div
           key={field}
           onClick={() => toggleLine(field)}
           style={optionStyle(visibleLines[field], colorMap[field])}
         >
-          <input
-            type="checkbox"
-            checked={visibleLines[field]}
-            onChange={() => {}}
-            style={{ cursor: 'pointer' }}
-          />
-          <span>{labelMap[field]}</span>
+        <input
+          type="checkbox"
+          checked={visibleLines[field]}
+          onChange={() => {}}
+          style={{
+            cursor: 'pointer',
+            width: '16px',
+            height: '16px',
+            flexShrink: 0               // ← チェックボックスは縮まない
+          }}
+        />
+        <span style={{
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          display: 'inline-block',
+          flex: '1 1 auto'             // ← テキスト部分が横幅に応じて伸縮
+        }}>
+          {labelMap[field]}
+        </span>
         </div>
       ))}
     </div>
 
     {/* グラフコンテナ - スクロール可能エリア */}
-    <div className="chart-container" style={{ height: '400px', overflow: 'hidden' }}>
+    <div className="chart-container mt-4" style={{ height: '400px', overflow: 'hidden' }}>
       <div className="chart-scroll-area" style={{ 
         width: '100%', 
         height: '100%',

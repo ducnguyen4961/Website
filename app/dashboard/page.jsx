@@ -29,14 +29,14 @@ export default function DashboardPage() {
 
   const oldFields = [
     'house_device', 'timestamp', 'temperature', 'humidity', 'CO2',
-    'soil_mois', 'soil_EC', 'soil_temp','satur', 'VR', 'PPFD', 'NIR', 'status'
+    'soil_mois', 'soil_EC', 'soil_temp','satur', 'VR', 'PPFD', 'NIR'
   ];
   const newFields = [
-    'house_device', 'timestamp','lai', 'area_per_plant'
+    'lai', 'area_per_plant'
   ];
   const baseFields = [
     'house_device', 'timestamp', 'temperature', 'humidity', 'CO2',
-    'soil_mois', 'soil_EC', 'soil_temp', 'satur', 'VR', 'PPFD', 'NIR', 'status'
+    'soil_mois', 'soil_EC', 'soil_temp', 'satur', 'VR', 'PPFD', 'NIR'
   ];
   function getDisplayValue(item, field) {
     if (field === 'timestamp') {
@@ -53,7 +53,7 @@ export default function DashboardPage() {
     return (item[totalKey] / item.samples).toFixed(2);
   }
   return '-';
-}
+  }
   const isWithinOneDay = (start, end) => {
     const startDate = new Date(start);
     const endDate = new Date(end);
@@ -253,10 +253,23 @@ export default function DashboardPage() {
       });
     }
   };
-return (
-  <div className="fetch-data">
-    <h1>🌱 センサモニタ 🌱</h1>
-    <form onSubmit={fetchData} id="filterForm">
+  // 表示/非表示の状態を管理
+  const [visibleFields, setVisibleFields] = useState(
+    Object.fromEntries(oldFields.map(f => [f, true]))
+  );
+
+  // トグル関数
+  const toggleField = (field) => {
+    setVisibleFields(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
+
+  return (
+    <div className="fetch-data">
+      <h1>🌱 センサモニタ 🌱</h1>
+      <form onSubmit={fetchData} id="filterForm">
   <input
     type="text"
     value={houseId}
@@ -316,9 +329,10 @@ return (
             </button>
             </Link>
         </div>
-        <button onClick={() => exportCSV(rawItems, false,CSV_FIELDS)}>センサ1日CSV</button>
-        <button onClick={() => exportCSV(data.hourly, true,CSV_FIELDS)}>センサ複数日CSV</button>
-        <button onClick={() => exportCSV(mergedDaily, true, CSV_FIELDS_DAILY)}>計算値CSV</button>
+        <button onClick={() => exportCSV(rawItems, false,CSV_FIELDS)}>CSV1日</button>
+        <button onClick={() => exportCSV(data.hourly, true,CSV_FIELDS)}>CSV複数日</button>
+        <button onClick={() => exportCSV(mergedDaily, true, CSV_FIELDS_DAILY)}>CSV葉面積LAI</button>
+        
     </form>
     {isSingleDay && rawItems.length > 0 && (
       <>
@@ -328,7 +342,7 @@ return (
       <table>
         <thead>
           <tr>
-            {oldFields.map((col) => (
+            {oldFields.filter(f => visibleFields[f]).map((col) => (
               <th key={col}>{FIELD_LABELS[col] || col}</th>
             ))}
           </tr>
@@ -336,7 +350,7 @@ return (
         <tbody>
           {rawItems.slice(-1).map((item, index) => (
             <tr key={`raw-${index}`}>
-              {oldFields.map((col) => (
+              {oldFields.filter(f => visibleFields[f]).map((col) => (
                 <td key={`${index}-${col}`}>
                   {col === 'timestamp'
                   ? formatRawTimestamp(item[col])
@@ -354,13 +368,11 @@ return (
     )}
     {!isSingleDay && (data.hourly.length > 0 || data.daily.length > 0) && (
       <>
-      <h2>センサデータ</h2>
-
       <div className="table-container">
       <table>
         <thead>
           <tr>
-            {baseFields.map((col) => (
+            {oldFields.filter(f => visibleFields[f]).map((col) => (
               <th key={col}>{FIELD_LABELS[col] || col}</th>
             ))}
           </tr>
@@ -368,7 +380,7 @@ return (
         <tbody>
               {(data.hourly.length > 0 ? data.hourly : data.daily).slice(-1).map((item, index) => (
                 <tr key={`agg-${index}`}>
-              {baseFields.map((col) => (
+              {oldFields.filter(f => visibleFields[f]).map((col) => (
                 <td key={`${index}-${col}`}>
                   {col === 'timestamp'
                   ? formatTimestamp(item[col])
@@ -387,9 +399,7 @@ return (
     
     {data.daily.length > 0 && (
       <>
-      <h2>計算結果</h2>
-
-      <div className="table-container1">
+      <div className="table-container2">
         <table>
           <thead>
             <tr>
@@ -399,7 +409,7 @@ return (
             </tr>
           </thead>
           <tbody>
-            {newData.slice(-2).map((item, index) => (
+            {newData.slice(-1).map((item, index) => (
               <tr key={`fixed-${index}`}>
                 {newFields.map((col) => (
                   <td key={`${index}-${col}`}>
