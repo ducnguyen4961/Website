@@ -41,19 +41,34 @@ table {
 th,
 td {
   padding: 10px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #e0e0e0;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
+/* 奇数行に薄い背景色（視認性アップ） */
+tbody tr:nth-child(odd) {
+  background-color: #fafafa;
+}
+/* 通常のテーブルヘッダー */
 th {
-  background-color: #007BFF;
-  color: white;
+  background-color: #e3f3e8; /* 淡いグリーン */
+  color: #222;               /* 柔らかい黒 */
   position: sticky;
   top: 0;
   z-index: 2;
+  padding: 10px;
+  border-bottom: 1px solid #d0ddd8;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* アルタネート背景（例：注目の列） */
+th.alt-bg {
+  background-color: #e5f2fa; /* 淡い水色 */
+  color: #222;
 }
 
 th:nth-child(1), td:nth-child(1) { width: 150px; } 
@@ -142,13 +157,16 @@ th, td {
 .table-container1 td:nth-child(n+3) {
   width: 33%;
 }
+/* 全体のコンテナ */
 .fetch-data {
   max-width: 1800px;
   margin: 0 auto;
   padding: 2rem;
-  background: #fffef8;
+  background: #f9f9f6; /* 少し緑がかった優しいベージュ系 */
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgb(9, 0, 0);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 柔らかい影 */
+  font-family: "Segoe UI", sans-serif; /* 読みやすいフォント */
+  color: #333;
 }
 .encoded-device-form {
   background: #fff;

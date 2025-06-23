@@ -316,11 +316,14 @@ return (
             </button>
             </Link>
         </div>
+        <button onClick={() => exportCSV(rawItems, false,CSV_FIELDS)}>センサ1日CSV</button>
+        <button onClick={() => exportCSV(data.hourly, true,CSV_FIELDS)}>センサ複数日CSV</button>
+        <button onClick={() => exportCSV(mergedDaily, true, CSV_FIELDS_DAILY)}>計算値CSV</button>
     </form>
     {isSingleDay && rawItems.length > 0 && (
       <>
       <h2>センサデータ</h2>
-      <button onClick={() => exportCSV(rawItems, false,CSV_FIELDS)}>Export CSV</button>
+
       <div className="table-container">
       <table>
         <thead>
@@ -352,7 +355,7 @@ return (
     {!isSingleDay && (data.hourly.length > 0 || data.daily.length > 0) && (
       <>
       <h2>センサデータ</h2>
-      <button onClick={() => exportCSV(data.hourly, true,CSV_FIELDS)}>Export CSV</button>
+
       <div className="table-container">
       <table>
         <thead>
@@ -385,13 +388,13 @@ return (
     {data.daily.length > 0 && (
       <>
       <h2>計算結果</h2>
-      <button onClick={() => exportCSV(mergedDaily, true, CSV_FIELDS_DAILY)}>Export CSV</button>
+
       <div className="table-container1">
         <table>
           <thead>
             <tr>
               {newFields.map((col) => (
-                <th key={col}>{FIELD_LABELS[col] || col}</th>
+                <th class="alt-bg" key={col}>{FIELD_LABELS[col] || col}</th>
               ))}
             </tr>
           </thead>

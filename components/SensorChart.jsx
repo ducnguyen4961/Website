@@ -182,6 +182,9 @@ export default function SensorChart({ data }) {
         time: {
           unit: 'minute',
           tooltipFormat: 'yyyy-MM-dd HH:mm:ss',
+          displayFormats: {
+            minute: 'yyyy-MM-dd HH:mm' // ← これを追加
+          }
         },
         min: startTimestamp,
         max: endTimestamp,
