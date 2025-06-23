@@ -18,7 +18,12 @@ export default function ConfigForm() {
   const [currentDevice, setCurrentDevice] = useState(
     Array.from({ length: 3 }, () => ({ house_device: '', kuboma: '', jouma: '' }))
   );
-
+  // コマンド番号の enum を追加
+  const Command = {
+    CALB: 0,
+    SELFTEST: 1,
+    RESTART: 2
+  };
   useEffect(() => {
     const savedRows = localStorage.getItem('rows');
     const savedCO2s = localStorage.getItem('targetCO2s');
@@ -146,6 +151,7 @@ const handleSubmitCO2 = async (e) => {
         body: JSON.stringify({
           device: row.house_device,
           target_co2: parseFloat(row.target_co2),
+          cmd: Command.CALB
         }),
       });
 
@@ -191,8 +197,67 @@ const handleSubmitCO2 = async (e) => {
 
   setMessage(messages.join('\n'));
 };
+const handleSubmitSelftest = async (e) => {
+  e.preventDefault();
+  setMessage('送信中（セルフテスト）...');
 
+  const messages = [];
+  const validRows = targetCO2s.filter(r => r.house_device);
 
+  for (const row of validRows) {
+    try {
+      // POST送信
+      const res = await fetch('https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/send_value', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          device: row.house_device,
+          cmd: Command.SELFTEST
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      // ACK確認
+      let ackReceived = false;
+      let ackReturnVal = null;
+
+      for (let i = 0; i < 7; i++) {
+        await new Promise((r) => setTimeout(r, 700));
+        const ackRes = await fetch(`https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/send_value?device=${row.house_device}`);
+        if (!ackRes.ok) continue;
+
+        const ackData = await ackRes.json();
+        console.log("ACK Data:", ackData);
+
+        if (ackData.ack === true) {
+          ackReceived = true;
+          if (ackData.return_val !== undefined && ackData.return_val !== null) {
+            ackReturnVal = ackData.return_val;
+          }
+          break;
+        }
+      }
+
+      if (ackReceived) {
+        if (ackReturnVal !== null) {
+          messages.push(`✅ ${row.house_device}: セルフテストが完了しました。戻り値: ${ackReturnVal}`);
+        } else {
+          messages.push(`✅ ${row.house_device}: セルフテストが完了しましたが、戻り値は取得できませんでした。`);
+        }
+      } else {
+        messages.push(`⚠️ ${row.house_device}: コマンドは送信されましたが、機器からの応答がありません。`);
+      }
+    } catch (err) {
+      messages.push(`❌ ${row.house_device}: エラー発生 (${err.message})`);
+      console.error("セルフテスト送信エラー:", err);
+    }
+  }
+
+  setMessage(messages.join('\n'));
+};
   return (
     <div className="config-container">
       <h1 className="config-title">株間と条間を変更（ｃｍ）</h1>
@@ -273,6 +338,7 @@ const handleSubmitCO2 = async (e) => {
           <div key={index} className="config1-row">
             <input
               type="text"
+              list="house-device-list"
               placeholder="デバイスID"
               value={row.house_device}
               onChange={(e) => handleCO2Change(index, 'house_device', e.target.value)}
@@ -290,6 +356,26 @@ const handleSubmitCO2 = async (e) => {
           </div>
         ))}
         <button type="submit" className="config-button">送信（CO₂）</button>
+      </form>
+
+      <h2 className="config-title">セルフテスト実行</h2>
+      <form onSubmit={handleSubmitSelftest} className="config-form1">
+        {targetCO2s.map((row, index) => (
+          <div key={index} className="config1-row">
+            <input
+              type="text"
+              list="house-device-list"
+              placeholder="デバイスID"
+              value={row.house_device}
+              onChange={(e) => handleCO2Change(index, 'house_device', e.target.value)}
+              className="config1-input"
+              autoComplete="on"
+            />
+          </div>
+        ))}
+        <button type="submit" className="config-button">
+          セルフテスト実行
+        </button>
       </form>
 
       {message && <p className="config-message">{message}</p>}

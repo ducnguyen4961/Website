@@ -31,10 +31,10 @@ input,
 }
 
 table {
-  width: 100%;
+  width: 50%;
   border-collapse: collapse;
   background-color: white;
-  table-layout: fixed;
+  table-layout:fixed;
   box-shadow: 0 2px 8px rgba(42, 3, 3, 0.1);
 }
 
@@ -115,7 +115,8 @@ canvas {
 .main-container {
   min-width: 1500px;
 }
-.table-container {
+.table-container,
+.table-container1 {
   overflow-x: auto;
   max-width: 100%;
 }
@@ -149,4 +150,56 @@ th, td {
   background: #fffef8;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgb(9, 0, 0);
+}
+.encoded-device-form {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+.encoded-device-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.sensor-value {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.sensor-value label {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.sensor-value span {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+.table-grid {
+  display: flex;
+  flex-wrap: wrap;         /* Cho phép tự xuống dòng */
+  gap: 20px;               /* Khoảng cách giữa các bảng */
+  justify-content: flex-start;
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+.table-wrapper {
+  flex: 0 0 20%;           /* Mỗi bảng chiếm 20% chiều rộng */
+  min-width: 300px;        /* Đảm bảo không quá nhỏ */
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 10px;
+  overflow-x: auto;
 }

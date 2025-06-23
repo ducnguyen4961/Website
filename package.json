@@ -24,6 +24,7 @@
     "react": "^19.0.0",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.0.0",
+    "react-select": "^5.10.1",
     "tailwind-variants": "^1.0.0",
     "use-router-with-events": "^0.2.0"
   },

@@ -15,7 +15,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #222;
+  background-color: #ffffff;
   color: white;
   padding: 10px 20px;
   flex-wrap: wrap;
@@ -37,7 +37,7 @@ body {
 }
 
 .right-link a {
-  color: white;
+  color: rgb(53, 53, 53);
   text-decoration: none;
   padding: 5px 10px;
 }
@@ -54,7 +54,7 @@ body {
 
 .left-link a,
 .profile-btn {
-  color: white;
+  color: rgb(63, 63, 63);
   text-decoration: none;
   padding: 5px 10px;
   border-radius: 4px;
@@ -80,7 +80,7 @@ body {
 
 .left-link a.dashboard-btn {
   background-color: white;
-  color: #ff0000;
+  color: #4e4e4e;
 }
 
 .left-link a.dashboard-btn:hover {
@@ -157,4 +157,57 @@ body {
 main {
   padding: 20px;
   min-height: calc(100vh - 100px);
+}
+.logo-link {
+  display: inline-block;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+
+.logo-link:hover {
+  opacity: 0.8;
+}
+/* スクロールバーのスタイリング */
+.chart-scroll-area {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+}
+
+.chart-scroll-area::-webkit-scrollbar {
+  height: 8px;
+}
+
+.chart-scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chart-scroll-area::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.chart-scroll-area::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+/* SensorChart.module.cssとして保存するか、既存のCSSファイルに追加 */
+.w-64 {
+  width: 16rem;
+}
+
+.w-64::-webkit-scrollbar {
+  width: 24px;
+}
+
+.w-64::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.w-64::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.w-64::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }

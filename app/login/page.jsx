@@ -39,14 +39,33 @@ export default function LoginPage() {
       Username: email,
       Pool: userPool,
     });
-
     setCognitoUser(user);
-
     user.authenticateUser(authenticationDetails, {
-      onSuccess: (result) => {
+      onSuccess: async (result) => {
         console.log("Login success:", result);
-        localStorage.setItem("userEmail", email);
-        router.push("/dashboard ");
+        const idToken = result.getIdToken().getJwtToken();
+        try {
+          const res = await fetch("https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/at", {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+            },
+          });
+          console.log("Fetch response:", res);
+          
+
+          const userInfo = await res.json();
+          console.log("Fetched JSON body:", userInfo); 
+          localStorage.setItem("userEmail", email);
+          localStorage.setItem("idToken", idToken);
+          localStorage.setItem("userRole", userInfo.role);
+          localStorage.setItem("house", userInfo.house_device);
+          localStorage.setItem("slaveIds", JSON.stringify(userInfo.slave_ids));
+          router.push("/");
+        } catch (err) {
+          console.error("Error loading user info:", err);
+          setError("Đăng nhập thành công nhưng không lấy được dữ liệu người dùng");
+        }
       },
       onFailure: (err) => {
         console.error("Login error:", err);

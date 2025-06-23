@@ -3,6 +3,7 @@ import './globals.css';
 import { useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import { AuthProvider, AuthContext } from "@/context/Authcontext";
+import Link from 'next/link';
 
 export default function RootLayout({ children }) {
   const [userEmail, setUserEmail] = useState(null);
@@ -23,16 +24,25 @@ export default function RootLayout({ children }) {
     <html lang="ja">
       <body>
         <AuthProvider>
-          <header className="navbar">
-            <div className="logo">
-              <img src="/images/logocty.png" alt="Logo" />
-            </div>
-            
+          <div className="navbar">
+            <Link href="https://www.uruoi-navi.com/" className="logo-link">
+              <img
+                src="/images/logocty.png"
+                alt="Logo"
+                className="logo"
+                width={200}
+                height={70}
+              />
+            </Link>
             <div className="right-link">
-              <a href="/" className="home-btn">Home</a>
-              <a href="/products" className="products-btn">Products</a>
-              <a href="/about" className="about-btn">About</a>
-              <a href="/contact" className="contact-btn">Contact</a>
+
+              <a
+                href="https://yamamoto-denki.jp/product-line/agricultural-products/"
+                className="products-btn"
+              >
+                Products
+              </a>
+
             </div>
               
             <div className="left-link">
@@ -66,7 +76,7 @@ export default function RootLayout({ children }) {
               </>
             )}
           </div>
-        </header>
+        </div>
         <main>{children}</main>
 
         </AuthProvider>

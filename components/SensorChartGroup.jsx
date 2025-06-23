@@ -22,10 +22,6 @@ ChartJS.register(
   zoomPlugin
 );
 const charts = [
-  { field: 'avg_NIR', label: 'NIR (平均)', color: 'rgb(255, 99, 132)' },
-  { field: 'avg_PPFD', label: 'PPFD (平均)', color: 'rgb(54, 162, 235)' },
-  { field: 'avg_VR', label: 'VR (平均)', color: 'rgb(75, 192, 192)' },
-  { field: 'nir_vr_ratio', label: 'NIR/VR', color: 'rgb(255, 205, 86)' },
   { field: 'area_per_plant', label: '株当たり葉面積', color: 'rgb(75, 192, 192)' },
   { field: 'lai', label: '株間LAI', color: 'rgb(255, 205, 86)' }
 ];
@@ -79,7 +75,7 @@ const SensorChartGroup = ({ data }) => {
       legend: { display: true },
       tooltip: { mode: 'index', intersect: false },
       zoom: {
-        pan: { enabled: true, mode: 'x' },
+        pan: { enabled: true, mode: 'xy' },
         zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }
       }
     },
