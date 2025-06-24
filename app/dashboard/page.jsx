@@ -63,14 +63,14 @@ export default function DashboardPage() {
 
 
   const oldFields = [
-    'house_device', 'timestamp', 'temperature', 'humidity', 'CO2',
+    'timestamp', 'temperature', 'humidity', 'CO2',
     'soil_mois', 'soil_EC', 'soil_temp','satur', 'VR', 'PPFD', 'NIR', 'status'
   ];
   const newFields = [
-    'house_device', 'timestamp','lai', 'area_per_plant'
+    'lai', 'area_per_plant'
   ];
   const baseFields = [
-    'house_device', 'timestamp', 'temperature', 'humidity', 'CO2',
+    'timestamp', 'temperature', 'humidity', 'CO2',
     'soil_mois', 'soil_EC', 'soil_temp', 'satur', 'VR', 'PPFD', 'NIR', 'status'
   ];
   function getDisplayValue(item, field) {
@@ -278,7 +278,7 @@ export default function DashboardPage() {
 
 return (
   <div className="fetch-data">
-    <h1>🌱 センサーモニタ 🌱</h1>
+    <h1>🌱uruoi navi🌱</h1>
     <form onSubmit={fetchData} id="filterForm">
       <input
         type="text"
@@ -328,7 +328,6 @@ return (
     </form>
     {isSingleDay && rawItems.length > 0 && (
       <>
-      <h2>センサデータ</h2>
       <div className="table-grid">
         {Object.entries(groupedRaw).map(([deviceId, deviceData]) => (
           <div key={deviceId} className="table-wrapper">
@@ -368,7 +367,6 @@ return (
       
       {!isSingleDay && (data.hourly.length > 0 || data.daily.length > 0) && (
         <>
-        <h2>センサデータ</h2>
         <div className="table-grid">
           {Object.entries(groupedData).map(([deviceId, deviceData]) => (
             <div key={deviceId} className="table-wrapper">
@@ -408,7 +406,6 @@ return (
 
         {mergedDaily.length > 0 && (
           <>
-          <h2>計算結果</h2>
           <div className="table-grid">
             {Object.entries(groupedMergedDaily).map(([deviceId, deviceData]) => (
               <div key={deviceId} className="table-wrapper">
@@ -419,12 +416,12 @@ return (
                     <thead>
                       <tr>
                         {newFields.map((col) => (
-                          <th key={col}>{FIELD_LABELS[col] || col}</th>
+                          <th className="alt-bg" key={col}>{FIELD_LABELS[col] || col}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {deviceData.slice(-2).map((item, index) => (
+                      {deviceData.slice(-1).map((item, index) => (
                         <tr key={`merged-${deviceId}-${index}`}>
                           {newFields.map((col) => (
                             <td key={`${index}-${col}`}>

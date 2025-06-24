@@ -211,3 +211,34 @@ main {
 .w-64::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+/* === レスポンシブ対応 === */
+@media screen and (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px;
+  }
+
+  .logo img {
+    height: 60px;
+  }
+
+  .right-link,
+  .left-link {
+    flex-direction: column;
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .right-link a,
+  .left-link a {
+    padding: 8px 0;
+    width: 100%;
+    text-align: left;
+  }
+
+  .dropdown-content {
+    right: auto;
+    left: 0;
+  }
+}
