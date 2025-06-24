@@ -26,18 +26,52 @@ export default function DashboardPage() {
   const [houseId, setHouseId] = useState('');
   const [showChart, setShowChart] = useState(false);
   const [isSingleDay, setIsSingleDay] = useState(true);
-  const deviceId = `${houseId}#${deviceSuffix}`;
+  const deviceIdList = deviceSuffix.map(suffix => `${houseId}#${suffix}`);
+  const encodedDeviceId = encodeURIComponent(deviceIdList.join(','));
+  // 新しいデバイスの追加の場合には、ページをアクセスしてから、5分後にリロードしたら、新しいのが受けられる
+  useEffect(() => {
+    const token = localStorage.getItem("idToken");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+    fetch("https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/at", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch user info");
+        return res.json();
+      })
+      .then((data) => {
+        setRole(data.role || "");
+        setHouseId(data.house_device || "");
+        setSlaveid(data.slave_ids || []);
+
+        localStorage.setItem("userRole", data.role || "");
+        localStorage.setItem("house", data.house_device || "");
+        localStorage.setItem("slaveIds", JSON.stringify(data.slave_ids || []));
+      })
+      .catch((err) => {
+        console.error("Error loading user info:", err);
+        localStorage.clear();
+        router.push("/login");
+      });
+  }, []);
+
 
   const oldFields = [
     'house_device', 'timestamp', 'temperature', 'humidity', 'CO2',
-    'soil_mois', 'soil_EC', 'soil_temp','satur', 'VR', 'PPFD', 'NIR'
+    'soil_mois', 'soil_EC', 'soil_temp','satur', 'VR', 'PPFD', 'NIR', 'status'
   ];
   const newFields = [
-    'house_device', 'timestamp','avg_NIR', 'avg_PPFD', 'avg_VR', 'lai', 'nir_vr_ratio','area_per_plant'
+    'house_device', 'timestamp','lai', 'area_per_plant'
   ];
   const baseFields = [
     'house_device', 'timestamp', 'temperature', 'humidity', 'CO2',
-    'soil_mois', 'soil_EC', 'soil_temp', 'satur', 'VR', 'PPFD', 'NIR'
+    'soil_mois', 'soil_EC', 'soil_temp', 'satur', 'VR', 'PPFD', 'NIR', 'status'
   ];
   function getDisplayValue(item, field) {
     if (field === 'timestamp') {
@@ -54,7 +88,7 @@ export default function DashboardPage() {
     return (item[totalKey] / item.samples).toFixed(2);
   }
   return '-';
-  }
+}
   const isWithinOneDay = (start, end) => {
     const startDate = new Date(start);
     const endDate = new Date(end);
@@ -220,25 +254,46 @@ export default function DashboardPage() {
     });
     return obj;
   });
+  const groupByDevice = (items) => {
+    return items.reduce((acc, item) => {
+      const key = item.house_device || 'unknown';
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(item);
+      return acc;
+    }, {});
+  };
+  const activeData = data.hourly.length > 0 ? data.hourly : data.daily;
+  const groupedData = activeData.reduce((acc, item) => {
+    const device = item.house_device || 'Unknown';
+    if (!acc[device]) acc[device] = [];
+    acc[device].push(item);
+    return acc;
+  }, {});
+
+  const groupedRaw = groupByDevice(rawItems);
+  const groupedHourly = groupByDevice(data.hourly);
+  const groupedDaily = groupByDevice(data.daily);
+  const groupedMergedDaily = groupByDevice(mergedDaily);
+
+
 return (
   <div className="fetch-data">
-    <h1>🌱 IoT Greenhouse Monitoring Dashboard 🌱</h1>
+    <h1>🌱 センサーモニタ 🌱</h1>
     <form onSubmit={fetchData} id="filterForm">
       <input
         type="text"
         value={houseId}
         onChange={(e) => setHouseId(e.target.value)}
-        placeholder="House ID (e.g. H0001D002)"
+        placeholder="House ID"
+        readOnly={role === "user"}
+        style={role === "user" ? { backgroundColor: "#eee", cursor: "not-allowed" } : {}}
         required
       />
-      <input
-      type="text"
-      placeholder="Device ID (e.g. 0000)"
-      value={deviceSuffix}
-      onChange={(e) => setDeviceSuffix(e.target.value)}
-      required
+      <DeviceSelector
+      slaveid={slaveid}
+      selectedDevices={deviceSuffix}
+      setSelectedDevices={setDeviceSuffix}
       />
-
       <input
         type="date"
         value={startDate}
@@ -259,117 +314,140 @@ return (
       <div>
         <Link href="/RadarChart">
           <button className="bg-green-600 text-white px-4 py-2 rounded">
-            Radar Chart
-            </button>
-            </Link>
-        </div>
-        <div>
-          <Link href="/config-form">  
+            レーダーチャート
+          </button>
+        </Link>
+      </div>
+      <div>
+        <Link href="/config-form">
           <button className="bg-green-600 text-white px-4 py-2 rounded">
-            Setup Value
-            </button>
-            </Link>
-        </div>
+            ユーザ設定
+          </button>
+        </Link>
+      </div>
     </form>
     {isSingleDay && rawItems.length > 0 && (
       <>
-      <h2>Sensor Data</h2>
-      <button onClick={() => exportCSV(rawItems, false,CSV_FIELDS)}>Export CSV</button>
-      <div className="table-container">
-      <table>
-        <thead>
-          <tr>
-            {oldFields.map((col) => (
-              <th key={col}>{FIELD_LABELS[col] || col}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rawItems.slice(0, 100).map((item, index) => (
-            <tr key={`raw-${index}`}>
-              {oldFields.map((col) => (
-                <td key={`${index}-${col}`}>
-                  {col === 'timestamp'
-                  ? formatRawTimestamp(item[col])
-                  : col === 'status'
-                  ? evaluateStatus(item)
-                  : item[col] ?? '-'}
-                </td>
-              ))}
-            </tr>
+      <h2>センサデータ</h2>
+      <div className="table-grid">
+        {Object.entries(groupedRaw).map(([deviceId, deviceData]) => (
+          <div key={deviceId} className="table-wrapper">
+            <h3>{deviceId}</h3>
+            <button onClick={() => exportCSV(deviceData, false, CSV_FIELDS)}>Export CSV</button>
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    {oldFields.map((col) => (
+                      <th key={col}>{FIELD_LABELS[col] || col}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {deviceData.slice(-1).map((item, index) => (
+                    <tr key={`raw-${deviceId}-${index}`}>
+                      {oldFields.map((col) => (
+                        <td key={`${index}-${col}`}>
+                          {col === 'timestamp'
+                          ? formatRawTimestamp(item[col])
+                          : col === 'status'
+                          ? evaluateStatus(item)
+                          : item[col] ?? '-'}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              </div>
+            </div>
           ))}
-        </tbody>
-      </table>
       </div>
       </>
-    )}
-    {!isSingleDay && (data.hourly.length > 0 || data.daily.length > 0) && (
-      <>
-      <h2>Sensor Data</h2>
-      <button onClick={() => exportCSV(data.hourly, true,CSV_FIELDS)}>Export CSV</button>
-      <div className="table-container">
-      <table>
-        <thead>
-          <tr>
-            {baseFields.map((col) => (
-              <th key={col}>{FIELD_LABELS[col] || col}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {(data.hourly.length > 0 ? data.hourly : data.daily).map((item, index) => (
-            <tr key={`agg-${index}`}>
-              {baseFields.map((col) => (
-                <td key={`${index}-${col}`}>
-                  {col === 'timestamp'
-                  ? formatTimestamp(item[col])
-                  : col === 'status'
-                  ? evaluateStatus(item)
-                  : item[col] ?? '-'}
-                </td>
+      )}
+      
+      {!isSingleDay && (data.hourly.length > 0 || data.daily.length > 0) && (
+        <>
+        <h2>センサデータ</h2>
+        <div className="table-grid">
+          {Object.entries(groupedData).map(([deviceId, deviceData]) => (
+            <div key={deviceId} className="table-wrapper">
+              <h3>{deviceId}</h3>
+              <button onClick={() => exportCSV(deviceData, true, CSV_FIELDS)}>Export CSV</button>
+              <div className="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      {baseFields.map((col) => (
+                        <th key={col}>{FIELD_LABELS[col] || col}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {deviceData.slice(-1).map((item, index) => (
+                      <tr key={`agg-${deviceId}-${index}`}>
+                        {baseFields.map((col) => (
+                          <td key={`${index}-${col}`}>
+                            {col === 'timestamp'
+                            ? formatTimestamp(item[col])
+                            : col === 'status'
+                            ? evaluateStatus(item)
+                            : item[col] ?? '-'}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                </div>
+                </div>
               ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      </div>
-      </>
-    )}
-    
-    {data.daily.length > 0 && (
-      <>
-      <h2>Calculated Data</h2>
-      <button onClick={() => exportCSV(mergedDaily, true, CSV_FIELDS_DAILY)}>Export CSV</button>
-      <div className="table-container1">
-        <table>
-          <thead>
-            <tr>
-              {newFields.map((col) => (
-                <th key={col}>{FIELD_LABELS[col] || col}</th>
+            </div>
+            </>
+          )}
+
+        {mergedDaily.length > 0 && (
+          <>
+          <h2>計算結果</h2>
+          <div className="table-grid">
+            {Object.entries(groupedMergedDaily).map(([deviceId, deviceData]) => (
+              <div key={deviceId} className="table-wrapper">
+                <h3>{deviceId}</h3>
+                <button onClick={() => exportCSV(deviceData, true, CSV_FIELDS_DAILY)}>Export CSV</button>
+                <div className="table-container1">
+                  <table>
+                    <thead>
+                      <tr>
+                        {newFields.map((col) => (
+                          <th key={col}>{FIELD_LABELS[col] || col}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {deviceData.slice(-2).map((item, index) => (
+                        <tr key={`merged-${deviceId}-${index}`}>
+                          {newFields.map((col) => (
+                            <td key={`${index}-${col}`}>
+                              {col === 'timestamp' ? formatDateOnly(item[col]) : item[col] ?? '-'}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  </div>
+                </div>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {newData.map((item, index) => (
-              <tr key={`fixed-${index}`}>
-                {newFields.map((col) => (
-                  <td key={`${index}-${col}`}>
-                    {col === 'timestamp' ? formatDateOnly(item[col]) : item[col] ?? '-'}
-                    </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      </>
-    )}
+          </div>
+          </>
+        )}
+
     {showChart && (
       <>
         <SensorChart data={oldData} />
         <SensorChartGroup data={mergedDaily} />
       </>
     )}
-  </div>
-);
+    </div>
+  );
 }
