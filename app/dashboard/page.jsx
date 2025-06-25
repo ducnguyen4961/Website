@@ -438,12 +438,27 @@ return (
           </div>
           </>
         )}
-
     {showChart && (
       <>
-        <SensorChart data={oldData} />
-        <SensorChartGroup data={mergedDaily} />
-      </>
+        <div className="charts-scroll-container">
+          {Object.entries(groupedMergedDaily).map(([deviceId, deviceData]) => (
+            <div key={deviceId} className="chart-item.compact">
+              <h3>{deviceId}</h3>
+              <SensorChartGroup data={deviceData} />
+            </div>
+          ))}
+        </div>
+
+        {/* --- SensorChart 縦並び表示 --- */}
+        <div>
+          {Object.entries(groupedRaw).map(([deviceId, deviceData]) => (
+            <div key={deviceId} className="chart-item" style={{ marginBottom: '40px' }}>
+              <h3>{deviceId}</h3>
+              <SensorChart data={deviceData} />
+            </div>
+          ))}
+            </div>
+          </>
     )}
     </div>
   );

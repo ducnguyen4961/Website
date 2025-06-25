@@ -1,7 +1,7 @@
 body {
   font-family: Arial, sans-serif;
   margin: 40px;
-  background-color: #f9f9f9;
+  background-color: #fffefe;
 }
 
 h1 {
@@ -128,6 +128,29 @@ canvas {
   gap: 20px;  
   padding: 10px 0;
 }
+/* 横スクロール用の親コンテナ */
+.charts-scroll-container {
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  gap: 12px;
+  padding: 8px 0;
+  scroll-behavior: smooth;
+}
+.chart-item.compact {
+  flex: 0 0 auto;
+  width: 500px;
+  height: 500px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 12px;
+  box-sizing: border-box;
+}
+.sensor-chart-group-wrapper {
+  margin-bottom: 24px;
+}
 .chart-item {
   flex: 0 0 auto;  
   width: 1500px;  
@@ -172,7 +195,7 @@ th, td {
   max-width: 1800px;
   margin: 0 auto;
   padding: 2rem;
-  background: #fffef8;
+  background: #d7dbd713;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgb(9, 0, 0);
 }

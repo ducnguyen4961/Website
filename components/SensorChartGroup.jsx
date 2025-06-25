@@ -93,35 +93,37 @@ const SensorChartGroup = ({ data }) => {
     }
   };
 return (
-  <div className="main-container">
-    <div className="charts-container">
+  <div className="sensor-chart-group-wrapper">
+    {/* 切り替えボタン */}
+    <div className="chart-buttons charts-scroll-container">
       {charts.map(({ field, label }) => (
         <button
           key={field}
           type="button"
           onClick={() => toggleChart(field)}
-          className={`px-3 py-2 border border-gray-300 text-left text-sm ${
+          className={`px-3 py-2 border text-sm rounded ${
             visibleCharts[field]
               ? 'bg-blue-500 text-white'
               : 'bg-gray-100 hover:bg-gray-200'
           }`}
-          style={{ width: '180px' }}
+          style={{ minWidth: '160px' }}
         >
           {label}
         </button>
       ))}
     </div>
-    <div className="charts-container">
+
+    {/* グラフ本体：横スクロール */}
+    <div className="charts-scroll-container">
       {charts.map(({ field, label, color }) =>
         visibleCharts[field] && (
           <div
             key={field}
-            className="flex-shrink-0 p-2 border rounded bg-white shadow"
-            style={{ width: '500px', height: '300px', position: 'relative' }}
+            className="chart-item.compact"
           >
             <Line
               data={generateChartData(dailyData, label, field, color)}
-              options={{ ...chartOptions, maintainAspectRatio: false }}
+              options={chartOptions}
             />
           </div>
         )
@@ -129,6 +131,7 @@ return (
     </div>
   </div>
 );
+
 };
 
 export default SensorChartGroup;
