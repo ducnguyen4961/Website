@@ -274,6 +274,7 @@ export default function DashboardPage() {
   const groupedHourly = groupByDevice(data.hourly);
   const groupedDaily = groupByDevice(data.daily);
   const groupedMergedDaily = groupByDevice(mergedDaily);
+  
 
 
 return (
@@ -451,11 +452,10 @@ return (
 
         {/* --- SensorChart 縦並び表示 --- */}
         <div>
-          {Object.entries(groupedRaw).map(([deviceId, deviceData]) => (
-            <div key={deviceId} className="chart-item" style={{ marginBottom: '40px' }}>
-              <h3>{deviceId}</h3>
+          {Object.entries(isSingleDay ? groupedRaw : groupedHourly).map(([deviceId, deviceData]) => (
+            <div key={deviceId}>
               <SensorChart data={deviceData} />
-            </div>
+              </div>
           ))}
             </div>
           </>

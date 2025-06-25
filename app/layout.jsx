@@ -4,10 +4,13 @@ import { useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import { AuthProvider, AuthContext } from "@/context/Authcontext";
 import Link from 'next/link';
+import Head from 'next/head';
 
 export default function RootLayout({ children }) {
   const [userEmail, setUserEmail] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
 
   useEffect(() => {
     const email = localStorage.getItem('userEmail');
@@ -22,6 +25,8 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="ja">
+      
+
       <body>
         <AuthProvider>
           <div className="navbar">
@@ -57,7 +62,7 @@ export default function RootLayout({ children }) {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") setIsProfileOpen((prev) => !prev);
                     }}
-                    >Profile</div>
+                    ><span className="material-symbols-outlined">manage_accounts</span></div>
 
                   {isProfileOpen && (
                     <div className="dropdown-content">
@@ -67,7 +72,24 @@ export default function RootLayout({ children }) {
                     </div>
                   )}
                 </div>
-                <a href="/dashboard" className="dashboard-btn">Dashboard</a>
+                <div className="menu-dropdown">
+                  <div className="menu-btn" 
+                  onClick={() => setIsMenuOpen((prev) => !prev)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") setIsMenuOpen((prev) => !prev);
+                  }}
+                  ><span className="material-symbols-outlined" style={{ color: '#333' }}>menu</span></div>
+                  {isMenuOpen && (
+                    <div className="dropdown-content">
+                      <a href="/dashboard">ダッシュボード</a>
+                      <a href="/RadarChart">レーダーチャート</a>
+                      <a href="/config-form">ユーザ設定</a>
+                      <a href="/fill-form">デバイス</a>
+                      </div>
+                  )}
+                </div>
               </>
             ) : (
               <>

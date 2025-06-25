@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo} from 'react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -42,11 +42,15 @@ export default function SensorChart({ data }) {
     ? new Date(data.endTimestamp)
     : new Date(startTimestamp.getTime() + 6 * 60 * 60 * 1000);
   const extractAvgValue = (item, field) => {
-    if ('samples' in item && item.samples) {
-      return item[`total_${field}`] / item.samples;
+    const samples = Number(item.samples);
+    const total = Number(item[`total_${field}`]);
+    if (!isNaN(samples) && samples > 0 && !isNaN(total)) {
+      return total / samples;
     }
-    return item[field] ?? null;
+    const raw = item[field];
+    return raw !== undefined && raw !== null && raw !== '-' ? Number(raw) : null;
   };
+
   const colorMap = {
     temperature: 'rgb(255, 0, 55)',
     humidity: 'rgb(45, 156, 231)',
@@ -103,14 +107,16 @@ export default function SensorChart({ data }) {
     .map(field => {
       const processedData = data.map((item, index) => {
         const y = extractAvgValue(item, field);
-        const isGap = y === 0;
+        const numY = Number(y);
+        const isValid = !isNaN(numY);
         return {
-          x: new Date(item.timestamp.replace(/#\w+$/, '')),
-          y: isGap ? null : y,
-          isGap,
+          x: new Date(item.timestamp.split('#')[0]),
+          y: isValid ? numY : null,
+          isGap: !isValid,
           rawIndex: index,
         };
       });
+
       const filteredData = processedData;
       return {
         label: labelMap[field],
@@ -186,9 +192,6 @@ export default function SensorChart({ data }) {
         time: {
           unit: 'minute',
           tooltipFormat: 'yyyy-MM-dd HH:mm:ss',
-          displayFormats: {
-            minute: 'yyyy-MM-dd HH:mm' // ← これを追加
-          }
         },
         min: startTimestamp,
         max: endTimestamp,
