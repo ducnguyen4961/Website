@@ -21,8 +21,9 @@ export default function DashboardPage() {
   const [rawItems, setRawItems] = useState([]);
   const [aggItems, setAggItems] = useState([]);
   const [deviceSuffix, setDeviceSuffix] = useState([]);
+  const [listOfHouses, setListOfHouses] = useState([]);
   const [slaveid, setSlaveid] = useState([]); 
-  const [role, setRole] = useState("user");
+  const [role, setRole] = useState('');
   const [houseId, setHouseId] = useState('');
   const [showChart, setShowChart] = useState(false);
   const [isSingleDay, setIsSingleDay] = useState(true);
@@ -44,26 +45,44 @@ export default function DashboardPage() {
         Authorization: `Bearer ${token}`,
       },
     })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch user info");
-        return res.json();
-      })
-      .then((data) => {
-        setRole(data.role || "");
-        setHouseId(data.house_device || "");
-        setSlaveid(data.slave_ids || []);
-        setDeviceSuffix(data.slave_ids || []); // ← 追加ここ！！
+    .then((res) => {
+      if (!res.ok) throw new Error("Failed to fetch user info");
+      return res.json();
+    })
+    .then((data) => {
+      const userRole = data.role || "";
+      setRole(userRole);
+      localStorage.setItem("userRole", userRole);
 
-        localStorage.setItem("userRole", data.role || "");
-        localStorage.setItem("house", data.house_device || "");
-        localStorage.setItem("slaveIds", JSON.stringify(data.slave_ids || []));
-      })
-      .catch((err) => {
-        console.error("Error loading user info:", err);
-        localStorage.clear();
-        router.push("/login");
-      });
+      if (userRole === "admin") {
+        const houseMap = data.house_devices || {};
+        const houseKeys = Object.keys(houseMap);
+        setListOfHouses(houseKeys);
+        setHouseId(houseKeys[0] || "");
+        setSlaveid(houseMap[houseKeys[0]] || []);
+        localStorage.setItem("houseDevicesMap", JSON.stringify(houseMap));
+      } else {
+        const house = data.house_device || "";
+        const slaveIds = data.slave_ids || [];
+        setHouseId(house);
+        setSlaveid(slaveIds);
+        localStorage.setItem("house", house);
+        localStorage.setItem("slaveIds", JSON.stringify(slaveIds));
+      }
+    })
+    .catch((err) => {
+      console.error("Error loading user info:", err);
+      localStorage.clear();
+      router.push("/login");
+    });
   }, []);
+  useEffect(() => {
+    if (role === "admin") {
+      const houseDevicesMap = JSON.parse(localStorage.getItem("houseDevicesMap") || "{}");
+      setSlaveid(houseDevicesMap[houseId] || []);
+      setDeviceSuffix([]);
+    }
+  }, [houseId]);
 
 
   // ① 日付と deviceSuffix が揃ったら日付をセット
@@ -299,22 +318,29 @@ export default function DashboardPage() {
   const groupedHourly = groupByDevice(data.hourly);
   const groupedDaily = groupByDevice(data.daily);
   const groupedMergedDaily = groupByDevice(mergedDaily);
-  
-
-
 return (
   <div className="fetch-data">
     <h1>🌱uruoi navi🌱</h1>
     <form onSubmit={fetchData} id="filterForm">
-      <input
+      {role === 'admin' ? (
+        <select
+        value={houseId}
+        onChange={e => setHouseId(e.target.value)}
+        required
+        >
+          <option value="">please select</option>
+          {listOfHouses.map(h => (
+            <option key={h} value={h}>{h}</option>
+          ))}
+        </select>
+        ) : (
+        <input
         type="text"
         value={houseId}
-        onChange={(e) => setHouseId(e.target.value)}
-        placeholder="House ID"
-        readOnly={role === "user"}
-        style={role === "user" ? { backgroundColor: "#eee", cursor: "not-allowed" } : {}}
-        required
-      />
+        readOnly
+        style={{ backgroundColor: '#eee', cursor: 'not-allowed' }}
+        />
+        )}
       <DeviceSelector
       slaveid={slaveid}
       selectedDevices={deviceSuffix}
@@ -336,20 +362,6 @@ return (
         <button type="submit" disabled={loading}>
           {loading ? 'Loading...' : 'データ取得'}
         </button>
-      </div>
-      <div>
-        <Link href="/RadarChart">
-          <button className="bg-green-600 text-white px-4 py-2 rounded">
-            レーダーチャート
-          </button>
-        </Link>
-      </div>
-      <div>
-        <Link href="/config-form">
-          <button className="bg-green-600 text-white px-4 py-2 rounded">
-            ユーザ設定
-          </button>
-        </Link>
       </div>
     </form>
     {isSingleDay && rawItems.length > 0 && (

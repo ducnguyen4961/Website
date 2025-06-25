@@ -55,13 +55,16 @@ export default function LoginPage() {
           
 
           const userInfo = await res.json();
-          console.log("Fetched JSON body:", userInfo); 
           localStorage.setItem("userEmail", email);
           localStorage.setItem("idToken", idToken);
           localStorage.setItem("userRole", userInfo.role);
           localStorage.setItem("house", userInfo.house_device);
           localStorage.setItem("slaveIds", JSON.stringify(userInfo.slave_ids));
+          if (userInfo.role === "admin") {
+            localStorage.setItem("houseDevicesMap", JSON.stringify(userInfo.house_devices || {}));
+          }
           router.push("/");
+
         } catch (err) {
           console.error("Error loading user info:", err);
           setError("Đăng nhập thành công nhưng không lấy được dữ liệu người dùng");

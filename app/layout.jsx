@@ -4,18 +4,23 @@ import { useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import { AuthProvider, AuthContext } from "@/context/Authcontext";
 import Link from 'next/link';
-import Head from 'next/head';
+
+
 
 export default function RootLayout({ children }) {
   const [userEmail, setUserEmail] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
 
   useEffect(() => {
     const email = localStorage.getItem('userEmail');
+    const role = localStorage.getItem('userRole');
     if (email) setUserEmail(email);
+    if (role) setUserRole(role);
   }, []);
+
 
   const handleLogout = () => {
     localStorage.removeItem('userEmail');
@@ -53,43 +58,33 @@ export default function RootLayout({ children }) {
             <div className="left-link">
             {userEmail ? (
               <>
-                <div className="profile-dropdown">
-                  <div
-                  className="profile-btn"
-                  onClick={() => setIsProfileOpen((prev) => !prev)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") setIsProfileOpen((prev) => !prev);
-                    }}
-                    ><span className="material-symbols-outlined">manage_accounts</span></div>
-
-                  {isProfileOpen && (
-                    <div className="dropdown-content">
-                      <p>{userEmail}</p>
-                      <a className="logout-btn" onClick={handleLogout} role="button">Logout</a>
-                      <a href="/changepassword">Change Password</a>
+                <div className="profile-dropdown" onMouseEnter={() => setIsProfileOpen(true)} onMouseLeave={() => setIsProfileOpen(false)}>
+                  <div className="profile-btn" role="button" tabIndex={0}>
+                    <span className="material-symbols-outlined">manage_accounts</span>
                     </div>
-                  )}
-                </div>
-                <div className="menu-dropdown">
-                  <div className="menu-btn" 
-                  onClick={() => setIsMenuOpen((prev) => !prev)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") setIsMenuOpen((prev) => !prev);
-                  }}
-                  ><span className="material-symbols-outlined" style={{ color: '#333' }}>menu</span></div>
-                  {isMenuOpen && (
-                    <div className="dropdown-content">
-                      <a href="/dashboard">ダッシュボード</a>
-                      <a href="/RadarChart">レーダーチャート</a>
-                      <a href="/config-form">ユーザ設定</a>
-                      <a href="/fill-form">デバイス</a>
+                    {isProfileOpen && (
+                      <div className="dropdown-content">
+                        <p>{userEmail}</p>
+                        <a className="logout-btn" onClick={handleLogout} role="button">Logout</a>
+                        <a href="/changepassword">Change Password</a>
                       </div>
-                  )}
-                </div>
+                    )}
+                    </div>
+                <div className="menu-dropdown" onMouseEnter={() => setIsMenuOpen(true)} onMouseLeave={() => setIsMenuOpen(false)}>
+                  <div className="menu-btn" role="button" tabIndex={0}>
+                    <span className="material-symbols-outlined">menu</span>
+                    </div>
+                    {isMenuOpen && (
+                      <div className="dropdown-content">
+                        <a href="/dashboard">ダッシュボード</a>
+                        <a href="/RadarChart">レーダーチャート</a>
+                        {userRole && userRole !== 'user' && <a href="/fill-form">デバイス</a>}
+                        <a href="/config-form">ユーザ設定</a>
+                        </div>
+                      )}
+                    </div>
+
+
               </>
             ) : (
               <>

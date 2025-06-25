@@ -9,7 +9,7 @@ function DeviceSelector({ slaveid, selectedDevices, setSelectedDevices }) {
 
   const options = slaveid.map((id) => ({ value: id, label: id }));
 
-  if (!mounted) return null; // hoặc Skeleton
+  if (!mounted) return null;
 
   return (
     <div className="mb-4">
