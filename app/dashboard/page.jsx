@@ -28,6 +28,9 @@ export default function DashboardPage() {
   const [isSingleDay, setIsSingleDay] = useState(true);
   const deviceIdList = deviceSuffix.map(suffix => `${houseId}#${suffix}`);
   const encodedDeviceId = encodeURIComponent(deviceIdList.join(','));
+  const [hasAutoFetched, setHasAutoFetched] = useState(false);
+  const [readyToFetch, setReadyToFetch] = useState(false);
+
   // 新しいデバイスの追加の場合には、ページをアクセスしてから、5分後にリロードしたら、新しいのが受けられる
   useEffect(() => {
     const token = localStorage.getItem("idToken");
@@ -49,6 +52,7 @@ export default function DashboardPage() {
         setRole(data.role || "");
         setHouseId(data.house_device || "");
         setSlaveid(data.slave_ids || []);
+        setDeviceSuffix(data.slave_ids || []); // ← 追加ここ！！
 
         localStorage.setItem("userRole", data.role || "");
         localStorage.setItem("house", data.house_device || "");
@@ -60,6 +64,27 @@ export default function DashboardPage() {
         router.push("/login");
       });
   }, []);
+
+
+  // ① 日付と deviceSuffix が揃ったら日付をセット
+  useEffect(() => {
+    if (!hasAutoFetched && houseId && deviceSuffix.length > 0) {
+      const today = new Date().toISOString().split('T')[0];
+      setStartDate(today);
+      setEndDate(today);
+      setHasAutoFetched(true);
+      setReadyToFetch(true);  // ← 次段階へ
+    }
+  }, [houseId, deviceSuffix]);
+
+  // ② 日付がセットされたあとに fetchData を呼ぶ
+  useEffect(() => {
+    if (readyToFetch && startDate && endDate) {
+      const fakeEvent = { preventDefault: () => {} };
+      setTimeout(() => fetchData(fakeEvent), 0);
+      setReadyToFetch(false); // ← 一度だけ呼ばれるように
+    }
+  }, [readyToFetch, startDate, endDate]);
 
 
   const oldFields = [
