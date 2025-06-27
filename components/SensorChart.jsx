@@ -20,12 +20,12 @@ ChartJS.register(LineElement, PointElement, Tooltip, Legend, CategoryScale, Line
 export default function SensorChart({ data }) {
   const hasData = Array.isArray(data) && data.length > 0;
   const [visibleLines, setVisibleLines] = useState({
-    temperature: true,
-    humidity: true,
-    CO2: true,
-    NIR: false,
-    VR: false,
-    PPFD: false,
+    temperature: false,
+    humidity: false,
+    CO2: false,
+    NIR: true,
+    VR: true,
+    PPFD: true,
     soil_mois: false,
     soil_EC: false,
     soil_temp: false,
@@ -270,7 +270,7 @@ export default function SensorChart({ data }) {
         grid: { drawOnChartArea: false },
         title: { display: true, text: labelMap.VR },
         min: -20,
-        max: 100,
+        max: 1000,
       },
       y6: {
         type: 'linear',
@@ -280,7 +280,7 @@ export default function SensorChart({ data }) {
         grid: { drawOnChartArea: false },
         title: { display: true, text: labelMap.PPFD },
         min: 0,
-        max: 2000,
+        max: 6000,
       },
       y7: {
         type: 'linear',

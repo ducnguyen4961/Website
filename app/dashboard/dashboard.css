@@ -345,18 +345,36 @@ th, td {
 .chart-multiselect-option.selected-lai { background-color: rgba(255, 205, 86, 0.6); color: rgb(110, 110, 110); }
 .chart-multiselect-option.selected-area_per_plant { background-color: rgba(75, 192, 192, 0.6); color: rgb(110, 110, 110); }
 
+/* EXP CSVボタン用スタイル */
+.exp-csv-btn {
+  background-color: #979797;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 16px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: background 0.2s;
+}
+.exp-csv-btn:hover,
+.exp-csv-btn:focus {
+  background-color: #1565c0;
+}
+
 
 @media screen and (max-width: 768px) {
   .table-grid-block,
   .table-grid-block2 {
     flex-wrap: wrap;
     justify-content: center;
+    
   }
 
   .block-wrapper {
     flex: 0 0 calc(20% - 0.2rem);
-    min-width: 80px;
-    max-width: 80px;
+    min-width: 70px;
   }
 .block-wrapper h3 {
   font-size: 0.6rem;        /* お好みで 0.8rem, 12px などに調整 */
@@ -368,8 +386,8 @@ th, td {
   }
 
   .block-field {
-    padding: 0.8rem;
-    font-size: 0.95rem;
+    padding: 0.2rem;
+    font-size: 0.7rem;
   }
 
   .block-field strong,
@@ -377,13 +395,19 @@ th, td {
     width: 100%;
     display: block;
     text-align: left;
-  }
+    }
 
   .block-field div:last-child {
     margin-top: 0.2rem;
     text-align: left;
-    font-size: 1.3rem;
+    font-size: 1rem;
     font-weight: bold;
+  }
+  .exp-csv-btn {
+    width: 100%;
+    min-width: unset;
+    font-size: 0.7rem;
+    padding: 8px 0;
   }
 
   .charts-scroll-container {

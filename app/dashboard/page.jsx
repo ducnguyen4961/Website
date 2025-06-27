@@ -437,7 +437,12 @@ return (
         {Object.entries(groupedMergedDaily).map(([deviceId, deviceData]) => (
           <div key={deviceId} className="block-wrapper">
             <h3>{deviceId}</h3>
-            <button onClick={() => exportCSV(deviceData, true, CSV_FIELDS_DAILY)}>Export CSV</button>
+            <button
+  className="exp-csv-btn"
+  onClick={() => exportCSV(deviceData, true, CSV_FIELDS_DAILY)}
+>
+  EXP CSV
+</button>
             <div className="block-container">
               {deviceData.slice(-1).map((item, index) => (
                 <div key={`merged-block-${deviceId}-${index}`} className="block-item">
@@ -461,7 +466,12 @@ return (
         {Object.entries(groupedRaw).map(([deviceId, deviceData]) => (
           <div key={deviceId} className="block-wrapper">
             <h3>{deviceId}</h3>
-            <button onClick={() => exportCSV(deviceData, false, CSV_FIELDS)}>Export CSV</button>
+            <button
+  className="exp-csv-btn"
+  onClick={() => exportCSV(deviceData, false, CSV_FIELDS)}
+>
+  EXP CSV
+</button>
             <div className="block-container">
               {deviceData.slice(-1).map((item, index) => (
                 <div key={`raw-block-${deviceId}-${index}`} className="block-item">
@@ -485,7 +495,12 @@ return (
         {Object.entries(groupedData).map(([deviceId, deviceData]) => (
           <div key={deviceId} className="block-wrapper">
             <h3>{deviceId}</h3>
-            <button onClick={() => exportCSV(deviceData, true, CSV_FIELDS)}>Export CSV</button>
+            <button
+  className="exp-csv-btn"
+  onClick={() => exportCSV(deviceData, true, CSV_FIELDS)}
+>
+  EXP CSV
+</button>
             <div className="block-container">
               {deviceData.slice(-1).map((item, index) => (
                 <div key={`agg-block-${deviceId}-${index}`} className="block-item">
