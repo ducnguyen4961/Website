@@ -320,15 +320,28 @@ export default function DashboardPage() {
   const groupedHourly = groupByDevice(data.hourly);
   const groupedDaily = groupByDevice(data.daily);
   const groupedMergedDaily = groupByDevice(mergedDaily);
-  // マルチプルセレクト用stateとフィールド一覧
-const [selectedFields, setSelectedFields] = useState([
-  'PPFD', 'VR', 'NIR', 'temperature', 'humidity', 'CO2',
-  'soil_mois', 'soil_EC', 'soil_temp', 'satur'
-]);
-const allSelectableFields = [
-  'timestamp', 'PPFD', 'VR', 'NIR', 'temperature', 'humidity', 'CO2',
-  'soil_mois', 'soil_EC', 'soil_temp', 'satur', 'lai', 'area_per_plant'
-];
+  // SensorChartと同じデフォルト表示（true:表示, false:非表示）
+const defaultVisibleFields = {
+  temperature: false,
+  humidity: false,
+  CO2: false,
+  NIR: true,
+  VR: true,
+  PPFD: true,
+  soil_mois: false,
+  soil_EC: false,
+  soil_temp: false,
+  satur: false,
+  lai: false,
+  area_per_plant: false,
+};
+
+// マルチプルセレクト用state（trueのものだけ初期選択）
+const [selectedFields, setSelectedFields] = useState(
+  Object.entries(defaultVisibleFields)
+    .filter(([_, v]) => v)
+    .map(([k]) => k)
+);
 
 // マルチプルセレクトUI
 function FieldMultiSelect({ fields, selected, onChange }) {

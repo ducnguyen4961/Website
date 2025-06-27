@@ -354,11 +354,15 @@ th, td {
   }
 
   .block-wrapper {
-    flex: 0 0 calc(20% - 0.5rem);
-    min-width: 150px;
-    max-width: 240px;
+    flex: 0 0 calc(20% - 0.2rem);
+    min-width: 80px;
+    max-width: 80px;
   }
-
+.block-wrapper h3 {
+  font-size: 0.6rem;        /* お好みで 0.8rem, 12px などに調整 */
+  margin-bottom: 0.3rem; /* 少し余白も調整（必要に応じて） */
+  font-weight: normal;   /* ボールド感を抑える場合 */
+}
   .block-container {
     gap: 0.8rem;
   }
