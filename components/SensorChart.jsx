@@ -62,7 +62,23 @@ export default function SensorChart({ data }) {
     soil_EC: 'rgb(163, 176, 184)',
     soil_temp: 'rgb(28, 67, 25)',
     satur: 'rgb(52, 126, 167)',
+    lai: 'rgb(255, 205, 86)',             // ← LAIの色
+    area_per_plant: 'rgb(75, 192, 192)',  // ← 株当たり葉面積の色
   };
+  const cssColorMap = {
+  temperature: 'rgba(255, 0, 55, 0.6)',
+  humidity: 'rgba(45, 156, 231, 0.6)',
+  CO2: 'rgba(113, 250, 0, 0.6)',
+  NIR: 'rgba(115, 0, 255, 0.6)',
+  VR: 'rgba(55, 116, 73, 0.6)',
+  PPFD: 'rgba(8, 109, 176, 0.6)',
+  soil_mois: 'rgba(182, 137, 14, 0.6)',
+  soil_EC: 'rgba(163, 176, 184, 0.6)',
+  soil_temp: 'rgba(28, 67, 25, 0.6)',
+  satur: 'rgba(52, 126, 167, 0.6)',
+  lai: 'rgba(255, 205, 86, 0.6)',
+  area_per_plant: 'rgba(75, 192, 192, 0.6)',
+};
   const axisMap = {
     temperature: 'y1',
     humidity: 'y2',
@@ -103,47 +119,47 @@ export default function SensorChart({ data }) {
   const chartData = useMemo(() => {
     if (!hasData) return { datasets: [] };
     const datasets = Object.keys(visibleLines)
-    .filter(field => visibleLines[field])
-    .map(field => {
-      const processedData = data.map((item, index) => {
+      .filter(field => visibleLines[field])
+      .map(field => {
+        const processedData = data.map((item, index) => {
         const y = extractAvgValue(item, field);
-        const numY = Number(y);
-        const isValid = !isNaN(numY);
+          const numY = Number(y);
+          const isValid = !isNaN(numY);
+          return {
+            x: new Date(item.timestamp.split('#')[0]),
+            y: isValid ? numY : null,
+            isGap: !isValid,
+            rawIndex: index,
+          };
+        });
+
+        const filteredData = processedData;
         return {
-          x: new Date(item.timestamp.split('#')[0]),
-          y: isValid ? numY : null,
-          isGap: !isValid,
-          rawIndex: index,
+          label: labelMap[field],
+          data: filteredData,
+          parsing: false,
+          borderColor: colorMap[field],
+          yAxisID: axisMap[field],
+          tension: 0.3,
+          spanGaps: true,
+          hidden: !visibleLines[field],
+          segment: {
+            borderDash: ctx => {
+              const { p0, p1 } = ctx.segment || {};
+              if (!p0 || !p1) return;
+              const index0 = ctx.p0DataIndex;
+              const index1 = ctx.p1DataIndex;
+              const rawIndex0 = filteredData[index0].rawIndex;
+              const rawIndex1 = filteredData[index1].rawIndex;
+              const hasZeroBetween = data
+                .slice(rawIndex0 + 1, rawIndex1)
+                .some(d => extractAvgValue(d, field) === 0);
+              if (hasZeroBetween) return [6, 6];
+              return undefined;
+            }
+          }
         };
       });
-
-      const filteredData = processedData;
-      return {
-        label: labelMap[field],
-        data: filteredData,
-        parsing: false,
-        borderColor: colorMap[field],
-        yAxisID: axisMap[field],
-        tension: 0.3,
-        spanGaps: true,
-        hidden: !visibleLines[field],
-        segment: {
-          borderDash: ctx => {
-            const { p0, p1 } = ctx.segment || {};
-            if (!p0 || !p1) return;
-            const index0 = ctx.p0DataIndex;
-            const index1 = ctx.p1DataIndex;
-            const rawIndex0 = filteredData[index0].rawIndex;
-            const rawIndex1 = filteredData[index1].rawIndex;
-            const hasZeroBetween = data
-            .slice(rawIndex0 + 1, rawIndex1)
-            .some(d => extractAvgValue(d, field) === 0);
-            if (hasZeroBetween) return [6, 6];
-            return undefined;
-          }
-        }
-      };
-    });
 
     return { datasets };
   }, [data, visibleLines]);
@@ -264,7 +280,7 @@ export default function SensorChart({ data }) {
         grid: { drawOnChartArea: false },
         title: { display: true, text: labelMap.PPFD },
         min: 0,
-        max: 100,
+        max: 2000,
       },
       y7: {
         type: 'linear',
@@ -339,49 +355,49 @@ export default function SensorChart({ data }) {
   });
 
   return (
-  <div className="flex flex-col gap-6">
-    {/* ボタンリストをMultiple Selectに変更 */}
-    <div className="w-64" style={selectStyle}>
-      {Object.keys(visibleLines).map(field => (
-        <div
-          key={field}
-          onClick={() => toggleLine(field)}
-          style={optionStyle(visibleLines[field], colorMap[field])}
-        >
-          <input
-            type="checkbox"
-            checked={visibleLines[field]}
-            onChange={() => {}}
-            style={{ cursor: 'pointer' }}
-          />
-          <span>{labelMap[field]}</span>
-        </div>
-      ))}
-    </div>
-
-    {/* グラフコンテナ - スクロール可能エリア */}
-    <div className="chart-container" style={{ height: '400px', overflow: 'hidden' }}>
-      <div className="chart-scroll-area" style={{ 
-        width: '100%', 
-        height: '100%',
-        overflowX: 'auto',
-        overflowY: 'hidden'
-      }}>
-        <div style={{ minWidth: '2000px', height: '100%' }}>
-          {hasData ? (
-            <Line 
-              data={chartData} 
-              options={{
-                ...options,
-                maintainAspectRatio: false
-              }} 
+    <div className="flex flex-col gap-6">
+      {/* ボタンリストをMultiple Selectに変更 */}
+      <div className="w-64" style={selectStyle}>
+        {Object.keys(visibleLines).map(field => (
+          <div
+            key={field}
+            onClick={() => toggleLine(field)}
+            style={optionStyle(visibleLines[field], cssColorMap[field])}
+          >
+            <input
+              type="checkbox"
+              checked={visibleLines[field]}
+              onChange={() => {}}
+              style={{ cursor: 'pointer' }}
             />
-          ) : (
-            <p>No data to show chart</p>
-          )}
+            <span>{labelMap[field]}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* グラフコンテナ - スクロール可能エリア */}
+      <div className="chart-container" style={{ height: '400px', overflow: 'hidden' }}>
+        <div className="chart-scroll-area" style={{ 
+          width: '100%', 
+          height: '100%',
+          overflowX: 'auto',
+          overflowY: 'hidden'
+        }}>
+          <div style={{ minWidth: '2000px', height: '100%' }}>
+            {hasData ? (
+              <Line 
+                data={chartData} 
+                options={{
+                  ...options,
+                  maintainAspectRatio: false
+                }} 
+              />
+            ) : (
+              <p>No data to show chart</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
 }
