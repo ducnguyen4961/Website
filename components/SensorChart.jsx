@@ -270,7 +270,7 @@ export default function SensorChart({ data }) {
         grid: { drawOnChartArea: false },
         title: { display: true, text: labelMap.VR },
         min: -20,
-        max: 1000,
+        max: 6000,
       },
       y6: {
         type: 'linear',
