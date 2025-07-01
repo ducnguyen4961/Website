@@ -16,13 +16,14 @@ const poolData = {
 const userPool = new CognitoUserPool(poolData);
 
 export default function SignupPage() {
-  const [step, setStep] = useState("signup"); // "signup" or "confirm"
+  const [step, setStep] = useState("signup");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [code, setCode] = useState(""); // mã xác nhận
+  const [code, setCode] = useState("");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const handleSignup = (e) => {
@@ -76,7 +77,6 @@ export default function SignupPage() {
         <div className="signuptitle">
           <h1>{step === "signup" ? "Sign Up" : "Confirm Email"}</h1>
         </div>
-
         {step === "signup" ? (
           <form className="signup-form" onSubmit={handleSignup}>
             <div>
@@ -95,9 +95,52 @@ export default function SignupPage() {
               <label>Email</label>
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="Enter your email" />
             </div>
-            <div>
+            <div style={{ position: "relative", minHeight: "80px", marginBottom: "16px" }}>
               <label>Password</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="Enter your password" />
+              <div style={{ position: "relative", width: "100%" }}>
+                <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="Enter your password"
+                style={{
+                  padding: "12px 40px 12px 12px",
+                  width: "100%",
+                  boxSizing: "border-box",
+                  height: "40px",
+                  fontSize: "16px",
+                  border: "1px solid #ccc",
+                  borderRadius: "6px"
+                }}
+                />
+              <button
+              type="button"
+              onClick={() => setShowPassword(prev => !prev)}
+              style={{
+                position: "absolute",
+                right: "12px",
+                top: "12px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: 0,
+                color: "#555",
+                height: "20px",
+                width: "20px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                <span className="material-symbols-outlined" style={{
+                  display: "inline-block", width: "24px", height: "24px", fontSize: "24px", lineHeight: "24px"
+                }}>
+                  {showPassword ? "visibility_off" : "visibility"}
+                </span>
+              </button>
+              </div>
             </div>
             {error && <p style={{ color: "red" }}>{error}</p>}
             <button type="submit">Create Account</button>

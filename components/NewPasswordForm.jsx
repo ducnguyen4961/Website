@@ -1,11 +1,18 @@
-"use client"; 
+"use client";
 
 import { useState } from "react";
+import MFASetup from "./MFASetup"; // kiểm tra path
 import './NewPasswordForm.css';
 
 export default function NewPasswordForm({ cognitoUser, userAttributes, onSuccess, onFailure }) {
   const [newPassword, setNewPassword] = useState("");
   const [error, setError] = useState("");
+  const [showMFASetup, setShowMFASetup] = useState(false);
+
+  const handleMFASetup = (challengeName, challengeParameters) => {
+    console.log("MFA setup required during new password challenge");
+    setShowMFASetup(true);
+  };
 
   const handleChangePassword = (e) => {
     e.preventDefault();
@@ -16,18 +23,35 @@ export default function NewPasswordForm({ cognitoUser, userAttributes, onSuccess
       return;
     }
 
-    delete userAttributes.email_verified;
-    delete userAttributes.phone_number_verified;
-    delete userAttributes.sub;
+    // Tạo bản sao để không mutate prop
+    const attrs = { ...userAttributes };
+    delete attrs.email_verified;
+    delete attrs.phone_number_verified;
+    delete attrs.sub;
 
-    cognitoUser.completeNewPasswordChallenge(newPassword, userAttributes, {
+    cognitoUser.completeNewPasswordChallenge(newPassword, attrs, {
       onSuccess,
       onFailure: (err) => {
         setError("Unable to change password: " + err.message);
         if (onFailure) onFailure(err);
       },
+      mfaSetup: handleMFASetup,
+      mfaRequired: () => {},
+      totpRequired: () => {},
     });
   };
+
+  if (showMFASetup) {
+    return (
+      <MFASetup
+        cognitoUser={cognitoUser}
+        onSuccess={onSuccess}
+        onFailure={(err) => {
+          setError(err.message || "Lỗi MFA setup");
+        }}
+      />
+    );
+  }
 
   return (
     <form onSubmit={handleChangePassword}>

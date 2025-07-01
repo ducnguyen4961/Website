@@ -1,0 +1,11 @@
+.mfa-setup-container {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  padding: 20px;
+}
+
+.mfa-instructions {
+  max-width: 500px;
+}
+
