@@ -206,7 +206,8 @@ const handleSubmitSelftest = async (e) => {
 
   for (const row of validRows) {
     try {
-      // POST送信
+
+
       const res = await fetch('https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/send_value', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -220,7 +221,7 @@ const handleSubmitSelftest = async (e) => {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
 
-      // ACK確認
+      // ACK確認（Lambda経由でack保存済み想定）
       let ackReceived = false;
       let ackReturnVal = null;
 
@@ -243,16 +244,16 @@ const handleSubmitSelftest = async (e) => {
 
       if (ackReceived) {
         if (ackReturnVal !== null) {
-          messages.push(`✅ ${row.house_device}: セルフテストが完了しました。戻り値: ${ackReturnVal}`);
+          messages.push(`✅ ${row.house_device}: セルフテスト完了`);
         } else {
-          messages.push(`✅ ${row.house_device}: セルフテストが完了しましたが、戻り値は取得できませんでした。`);
+          messages.push(`✅ ${row.house_device}: セルフテスト完了、戻り値なし`);
         }
       } else {
-        messages.push(`⚠️ ${row.house_device}: コマンドは送信されましたが、機器からの応答がありません。`);
+        messages.push(`⚠️ ${row.house_device}: 機器からの応答なし`);
       }
     } catch (err) {
-      messages.push(`❌ ${row.house_device}: エラー発生 (${err.message})`);
-      console.error("セルフテスト送信エラー:", err);
+      messages.push(`❌ ${row.house_device}: エラー (${err.message})`);
+      console.error("SELFTEST送信エラー:", err);
     }
   }
 

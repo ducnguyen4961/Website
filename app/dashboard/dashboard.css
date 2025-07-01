@@ -241,7 +241,19 @@ th, td {
   margin-top: 20px;
   overflow-x: auto;
 }
+.table-grid-block {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center; /* 中央寄せ */
+}
 
+.table-grid-block2 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center; /* 中央寄せ */
+}
 .table-wrapper {
   flex: 0 0 20%;           /* Mỗi bảng chiếm 20% chiều rộng */
   min-width: 300px;        /* Đảm bảo không quá nhỏ */
@@ -251,48 +263,160 @@ th, td {
   padding: 10px;
   overflow-x: auto;
 }
+.block-container {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 1rem;
+}
+/* 色ごとの項目背景色スタイル */
+.block-field[data-type="timestamp"] { background-color: rgba(255, 255, 255, 0.6); color: black; }
+.block-field[data-type="temperature"] { background-color: rgba(255, 0, 55, 0.6); color: white; }
+.block-field[data-type="humidity"] { background-color: rgba(45, 156, 231, 0.6); color: white; }
+.block-field[data-type="CO2"] { background-color: rgba(113, 250, 0, 0.6); color: rgb(110, 110, 110); }
+.block-field[data-type="NIR"] { background-color: rgba(115, 0, 255, 0.6); color: white; }
+.block-field[data-type="VR"] { background-color: rgba(55, 116, 73, 0.6); color: white; }
+.block-field[data-type="PPFD"] { background-color: rgba(8, 109, 176, 0.6); color: white; }
+.block-field[data-type="soil_mois"] { background-color: rgba(182, 137, 14, 0.6); color: white; }
+.block-field[data-type="soil_EC"] { background-color: rgba(163, 176, 184, 0.6); color: white; }
+.block-field[data-type="soil_temp"] { background-color: rgba(28, 67, 25, 0.6); color: white; }
+.block-field[data-type="satur"] { background-color: rgba(52, 126, 167, 0.6); color: white; }
+.block-field[data-type="lai"] { background-color: rgba(255, 205, 86, 0.6); color: rgb(110, 110, 110); }
+.block-field[data-type="area_per_plant"] { background-color: rgba(75, 192, 192, 0.6); color: rgb(110, 110, 110); }
+
+/* 追加のスタイリング */
+.block-field {
+  border-radius: 0.6rem;
+  margin-bottom: 0.2rem;
+  text-align: left;
+  padding-left: 0.5rem;
+}
+.block-field strong {
+  display: inline-block;
+  width: 100%;
+}
+.block-field div:last-child {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: inherit;
+  text-align: right;
+  padding-right: 0.5rem;
+}
+.block-wrapper {
+  flex: 0 0 calc(20% - 0.5rem); /* 5個並ぶ幅（gap考慮） */
+  min-width: 180px;
+  max-width: 240px;
+}
+.block-wrapper h3 {
+  font-size: 1rem;        /* お好みで 0.8rem, 12px などに調整 */
+  margin-bottom: 0.3rem; /* 少し余白も調整（必要に応じて） */
+  font-weight: normal;   /* ボールド感を抑える場合 */
+}
+/* チャート用マルチプルセレクトUIのスタイル */
+.chart-multiselect {
+  background-color: white;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  max-height: 100px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+  width: 16rem;
+}
+.chart-multiselect-option {
+  padding: 4px 8px;
+  cursor: pointer;
+  margin: 2px 0;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chart-multiselect-option.selected-temperature { background-color: rgba(255, 0, 55, 0.6); color: white; }
+.chart-multiselect-option.selected-humidity { background-color: rgba(45, 156, 231, 0.6); color: white; }
+.chart-multiselect-option.selected-CO2 { background-color: rgba(113, 250, 0, 0.6); color: rgb(110, 110, 110); }
+.chart-multiselect-option.selected-NIR { background-color: rgba(115, 0, 255, 0.6); color: white; }
+.chart-multiselect-option.selected-VR { background-color: rgba(55, 116, 73, 0.6); color: white; }
+.chart-multiselect-option.selected-PPFD { background-color: rgba(8, 109, 176, 0.6); color: white; }
+.chart-multiselect-option.selected-soil_mois { background-color: rgba(182, 137, 14, 0.6); color: white; }
+.chart-multiselect-option.selected-soil_EC { background-color: rgba(163, 176, 184, 0.6); color: white; }
+.chart-multiselect-option.selected-soil_temp { background-color: rgba(28, 67, 25, 0.6); color: white; }
+.chart-multiselect-option.selected-satur { background-color: rgba(52, 126, 167, 0.6); color: white; }
+.chart-multiselect-option.selected-lai { background-color: rgba(255, 205, 86, 0.6); color: rgb(110, 110, 110); }
+.chart-multiselect-option.selected-area_per_plant { background-color: rgba(75, 192, 192, 0.6); color: rgb(110, 110, 110); }
+
+/* EXP CSVボタン用スタイル */
+.exp-csv-btn {
+  background-color: #979797;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 16px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: background 0.2s;
+}
+.exp-csv-btn:hover,
+.exp-csv-btn:focus {
+  background-color: #1565c0;
+}
+
 
 @media screen and (max-width: 768px) {
-  body {
-    margin: 10px;
-  }
-
-  .chart-item {
-    width: 100%;
-    height: auto;
-  }
-
-  .main-container {
-    min-width: 100%;
-  }
-
-  .charts-container {
+  .table-grid-block,
+  .table-grid-block2 {
     flex-wrap: wrap;
+    justify-content: center;
+    
   }
 
-  .table-wrapper {
-    flex: 1 1 100%;
-    min-width: 100%;
+  .block-wrapper {
+    flex: 0 0 calc(20% - 0.2rem);
+    min-width: 70px;
+  }
+.block-wrapper h3 {
+  font-size: 0.6rem;        /* お好みで 0.8rem, 12px などに調整 */
+  margin-bottom: 0.3rem; /* 少し余白も調整（必要に応じて） */
+  font-weight: normal;   /* ボールド感を抑える場合 */
+}
+  .block-container {
+    gap: 0.8rem;
   }
 
-  .fetch-data {
-    padding: 1rem;
+  .block-field {
+    padding: 0.2rem;
+    font-size: 0.7rem;
   }
 
-  .encoded-device-grid {
-    grid-template-columns: 1fr;
+  .block-field strong,
+  .block-field div:last-child {
+    width: 100%;
+    display: block;
+    text-align: left;
+    }
+
+  .block-field div:last-child {
+    margin-top: 0.2rem;
+    text-align: left;
+    font-size: 1rem;
+    font-weight: bold;
+  }
+  .exp-csv-btn {
+    width: 100%;
+    min-width: unset;
+    font-size: 0.7rem;
+    padding: 8px 0;
   }
 
-  .sensor-value {
-    padding: 0.5rem;
-  }
-
-  form {
+  .charts-scroll-container {
+    overflow-x: auto;
     flex-direction: column;
-    align-items: center;
   }
 
-  table {
-    table-layout: auto;
+  .chart-item.compact {
+    width: 100%;
+    margin-bottom: 2rem;
   }
 }

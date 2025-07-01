@@ -60,12 +60,14 @@ export default function DashboardPage() {
         setListOfHouses(houseKeys);
         setHouseId(houseKeys[0] || "");
         setSlaveid(houseMap[houseKeys[0]] || []);
+        setDeviceSuffix(data.slave_ids || []); // ← 追加ここ！！
         localStorage.setItem("houseDevicesMap", JSON.stringify(houseMap));
       } else {
         const house = data.house_device || "";
         const slaveIds = data.slave_ids || [];
         setHouseId(house);
         setSlaveid(slaveIds);
+        setDeviceSuffix(data.slave_ids || []); // ← 追加ここ！！
         localStorage.setItem("house", house);
         localStorage.setItem("slaveIds", JSON.stringify(slaveIds));
       }
@@ -132,7 +134,7 @@ export default function DashboardPage() {
     return (item[totalKey] / item.samples).toFixed(2);
   }
   return '-';
-}
+  }
   const isWithinOneDay = (start, end) => {
     const startDate = new Date(start);
     const endDate = new Date(end);
@@ -282,7 +284,7 @@ export default function DashboardPage() {
     laiAreaData.map(item => [item.timestamp.split('#')[0], item.area_per_plant])
   );
   const mergedDaily = data.daily.map(item => ({
-    ...item,
+        ...item,
     area_per_plant: laiMap.get(item.timestamp.split('#')[0]) ?? null,
   }));
   const newData = mergedDaily.map(item => {
@@ -318,10 +320,206 @@ export default function DashboardPage() {
   const groupedHourly = groupByDevice(data.hourly);
   const groupedDaily = groupByDevice(data.daily);
   const groupedMergedDaily = groupByDevice(mergedDaily);
+  // SensorChartと同じデフォルト表示（true:表示, false:非表示）
+const defaultVisibleFields = {
+  temperature: false,
+  humidity: false,
+  CO2: false,
+  NIR: true,
+  VR: true,
+  PPFD: true,
+  soil_mois: false,
+  soil_EC: false,
+  soil_temp: false,
+  satur: false,
+  lai: false,
+  area_per_plant: false,
+};
+
+// マルチプルセレクト用state（trueのものだけ初期選択）
+const [selectedFields, setSelectedFields] = useState(
+  Object.entries(defaultVisibleFields)
+    .filter(([_, v]) => v)
+    .map(([k]) => k)
+);
+
+// マルチプルセレクトUI
+function FieldMultiSelect({ fields, selected, onChange }) {
+  return (
+    <div style={{ margin: '8px 0' }}>
+      <label>表示項目：</label>
+      <select
+        multiple
+        value={selected}
+        onChange={e => {
+          const options = Array.from(e.target.options);
+          onChange(options.filter(o => o.selected).map(o => o.value));
+        }}
+        style={{ minWidth: 200, minHeight: 80 }}
+      >
+        {fields.map(f => (
+          <option key={f} value={f}>
+            {FIELD_LABELS[f] || f}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+// SensorChartと同じフィールド・色・ラベルを利用
+const chartFieldList = [
+  'temperature', 'humidity', 'CO2', 'NIR', 'VR', 'PPFD',
+  'soil_mois', 'soil_EC', 'soil_temp', 'satur'
+];
+const chartLabelMap = {
+  temperature: '温度 (°C)',
+  humidity: '湿度 (%)',
+  CO2: 'CO2 (ppm)',
+  NIR: 'NIR (mV)',
+  VR: 'VR (mV)',
+  PPFD: 'PPFD (μmol/ms)',
+  soil_mois: '土壌水分 (%)',
+  soil_EC: '土壌EC (mS/cm)',
+  soil_temp: '土壌温度 (°C)',
+  satur: '飽差 (g/m3)',
+  lai: '株間LAI',
+  area_per_plant: '株当たり葉面積',
+};
+
+// チェックボックスUI
+function ChartFieldMultiSelect({ fields, selected, onChange }) {
+  return (
+    <div className="chart-multiselect">
+      {fields.map(field => (
+        <label
+          key={field}
+          className={
+            "chart-multiselect-option" +
+            (selected.includes(field) ? ` selected-${field}` : "")
+          }
+        >
+          <input
+            type="checkbox"
+            checked={selected.includes(field)}
+            onChange={() => {
+              if (selected.includes(field)) {
+                onChange(selected.filter(f => f !== field));
+              } else {
+                onChange([...selected, field]);
+              }
+            }}
+            style={{ cursor: 'pointer', marginRight: 8 }}
+          />
+          <span>{chartLabelMap[field]}</span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
 return (
   <div className="fetch-data">
     <h1>🌱uruoi navi🌱</h1>
-    <form onSubmit={fetchData} id="filterForm">
+
+    {/* isSingleDay/!isSingleDayのみマルチプルセレクト対応 */}
+    {(isSingleDay || (!isSingleDay && (data.hourly.length > 0 || data.daily.length > 0))) && (
+      <ChartFieldMultiSelect
+        fields={chartFieldList}
+        selected={selectedFields}
+        onChange={setSelectedFields}
+      />
+    )}
+
+    {/* --- mergedDailyは従来通り --- */}
+    {mergedDaily.length > 0 && (
+      <div className="table-grid-block">
+        {Object.entries(groupedMergedDaily).map(([deviceId, deviceData]) => (
+          <div key={deviceId} className="block-wrapper">
+            <h3>{deviceId}</h3>
+            <button
+  className="exp-csv-btn"
+  onClick={() => exportCSV(deviceData, true, CSV_FIELDS_DAILY)}
+>
+  EXP CSV
+</button>
+            <div className="block-container">
+              {deviceData.slice(-1).map((item, index) => (
+                <div key={`merged-block-${deviceId}-${index}`} className="block-item">
+                  {['timestamp', 'lai', 'area_per_plant'].map((col) => (
+                    <div key={col} className="block-field" data-type={col}>
+                      <div><strong>{FIELD_LABELS[col] || col}</strong></div>
+                      <div>{col === 'timestamp' ? formatTimestamp(item[col]) : item[col] ?? '-'}</div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {/* --- isSingleDay --- */}
+    {(isSingleDay && rawItems.length > 0) && (
+      <div className="table-grid-block">
+        {Object.entries(groupedRaw).map(([deviceId, deviceData]) => (
+          <div key={deviceId} className="block-wrapper">
+            <h3>{deviceId}</h3>
+            <button
+  className="exp-csv-btn"
+  onClick={() => exportCSV(deviceData, false, CSV_FIELDS)}
+>
+  EXP CSV
+</button>
+            <div className="block-container">
+              {deviceData.slice(-1).map((item, index) => (
+                <div key={`raw-block-${deviceId}-${index}`} className="block-item">
+                  {selectedFields.map((col) => (
+                    <div key={col} className="block-field" data-type={col}>
+                      <div><strong>{chartLabelMap[col] || col}</strong></div>
+                      <div>{col === 'timestamp' ? formatTimestamp(item[col]) : item[col] ?? '-'}</div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {/* --- !isSingleDay --- */}
+    {(!isSingleDay && (data.hourly.length > 0 || data.daily.length > 0)) && (
+      <div className="table-grid-block">
+        {Object.entries(groupedData).map(([deviceId, deviceData]) => (
+          <div key={deviceId} className="block-wrapper">
+            <h3>{deviceId}</h3>
+            <button
+  className="exp-csv-btn"
+  onClick={() => exportCSV(deviceData, true, CSV_FIELDS)}
+>
+  EXP CSV
+</button>
+            <div className="block-container">
+              {deviceData.slice(-1).map((item, index) => (
+                <div key={`agg-block-${deviceId}-${index}`} className="block-item">
+                  {selectedFields.map((col) => (
+                    <div key={col} className="block-field" data-type={col}>
+                      <div><strong>{chartLabelMap[col] || col}</strong></div>
+                      <div>{col === 'timestamp' ? formatTimestamp(item[col]) : item[col] ?? '-'}</div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+       
+      <form onSubmit={fetchData} id="filterForm">
       {role === 'admin' ? (
         <select
         value={houseId}
@@ -364,118 +562,7 @@ return (
         </button>
       </div>
     </form>
-    {isSingleDay && rawItems.length > 0 && (
-      <>
-      <div className="table-grid">
-        {Object.entries(groupedRaw).map(([deviceId, deviceData]) => (
-          <div key={deviceId} className="table-wrapper">
-            <h3>{deviceId}</h3>
-            <button onClick={() => exportCSV(deviceData, false, CSV_FIELDS)}>Export CSV</button>
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    {oldFields.map((col) => (
-                      <th key={col}>{FIELD_LABELS[col] || col}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {deviceData.slice(-1).map((item, index) => (
-                    <tr key={`raw-${deviceId}-${index}`}>
-                      {oldFields.map((col) => (
-                        <td key={`${index}-${col}`}>
-                          {col === 'timestamp'
-                          ? formatRawTimestamp(item[col])
-                          : col === 'status'
-                          ? evaluateStatus(item)
-                          : item[col] ?? '-'}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              </div>
-            </div>
-          ))}
-      </div>
-      </>
-      )}
-      
-      {!isSingleDay && (data.hourly.length > 0 || data.daily.length > 0) && (
-        <>
-        <div className="table-grid">
-          {Object.entries(groupedData).map(([deviceId, deviceData]) => (
-            <div key={deviceId} className="table-wrapper">
-              <h3>{deviceId}</h3>
-              <button onClick={() => exportCSV(deviceData, true, CSV_FIELDS)}>Export CSV</button>
-              <div className="table-container">
-                <table>
-                  <thead>
-                    <tr>
-                      {baseFields.map((col) => (
-                        <th key={col}>{FIELD_LABELS[col] || col}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {deviceData.slice(-1).map((item, index) => (
-                      <tr key={`agg-${deviceId}-${index}`}>
-                        {baseFields.map((col) => (
-                          <td key={`${index}-${col}`}>
-                            {col === 'timestamp'
-                            ? formatTimestamp(item[col])
-                            : col === 'status'
-                            ? evaluateStatus(item)
-                            : item[col] ?? '-'}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                </div>
-                </div>
-              ))}
-            </div>
-            </>
-          )}
 
-        {mergedDaily.length > 0 && (
-          <>
-          <div className="table-grid">
-            {Object.entries(groupedMergedDaily).map(([deviceId, deviceData]) => (
-              <div key={deviceId} className="table-wrapper">
-                <h3>{deviceId}</h3>
-                <button onClick={() => exportCSV(deviceData, true, CSV_FIELDS_DAILY)}>Export CSV</button>
-                <div className="table-container1">
-                  <table>
-                    <thead>
-                      <tr>
-                        {newFields.map((col) => (
-                          <th className="alt-bg" key={col}>{FIELD_LABELS[col] || col}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {deviceData.slice(-1).map((item, index) => (
-                        <tr key={`merged-${deviceId}-${index}`}>
-                          {newFields.map((col) => (
-                            <td key={`${index}-${col}`}>
-                              {col === 'timestamp' ? formatDateOnly(item[col]) : item[col] ?? '-'}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  </div>
-                </div>
-              ))}
-          </div>
-          </>
-        )}
     {showChart && (
       <>
         <div className="charts-scroll-container">
@@ -488,14 +575,14 @@ return (
         </div>
 
         {/* --- SensorChart 縦並び表示 --- */}
-        <div>
+<div>
           {Object.entries(isSingleDay ? groupedRaw : groupedHourly).map(([deviceId, deviceData]) => (
-            <div key={deviceId}>
-              <SensorChart data={deviceData} />
-              </div>
+      <div key={deviceId}>
+        <SensorChart data={deviceData} />
+      </div>
           ))}
-            </div>
-          </>
+</div>
+      </>
     )}
     </div>
   );
