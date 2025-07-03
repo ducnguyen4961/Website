@@ -68,13 +68,22 @@ function Navbar() {
               {isMenuOpen && (
                 <div className="dropdown-content">
                   <a href="/dashboard">
-                  <span className="material-symbols-outlined">monitoring</span>ダッシュボード</a>
+                    <span className="material-symbols-outlined">monitoring</span>ダッシュボード
+                  </a>
                   <a href="/RadarChart">
-                  <span className="material-symbols-outlined">pie_chart</span>レーダーチャート</a>
-                  {user.role && user.role !== 'user' && <a href="/register-slave">
-                  <span className="material-symbols-outlined">devices_other</span>デバイス</a>}
+                    <span className="material-symbols-outlined">pie_chart</span>レーダーチャート
+                  </a>
+                  {user.role && user.role !== 'user' && (
+                    <a href="/register-slave">
+                      <span className="material-symbols-outlined">devices_other</span>デバイス
+                    </a>
+                  )}
                   <a href="/config-form">
-                  <span className="material-symbols-outlined">settings_b_roll</span>ユーザ設定</a>
+                    <span className="material-symbols-outlined">settings_b_roll</span>ユーザ設定
+                  </a>
+                  <a href="/HistoricalData">
+                    <span className="material-symbols-outlined">history</span>過去のデータ
+                  </a>
                 </div>
               )}
             </div>

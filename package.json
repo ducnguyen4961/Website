@@ -12,7 +12,7 @@
     "@aws-amplify/ui-react": "^6.11.2",
     "@radix-ui/react-toggle": "^1.1.9",
     "amazon-cognito-identity-js": "^6.3.15",
-    "aws-amplify": "^6.15.1",
+    "aws-amplify": "^6.15.2",
     "chart.js": "^4.4.9",
     "chartjs-adapter-date-fns": "^3.0.0",
     "chartjs-plugin-zoom": "^2.2.0",
