@@ -241,10 +241,12 @@ th, td {
   margin-top: 20px;
   overflow-x: auto;
 }
-.table-grid-block {
+.graph {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  width: 100%;
+  height: 100%;
   justify-content: center; /* 中央寄せ */
 }
 
@@ -306,6 +308,7 @@ th, td {
   flex: 0 0 calc(20% - 0.5rem); /* 5個並ぶ幅（gap考慮） */
   min-width: 180px;
   max-width: 240px;
+  
 }
 .block-wrapper h3 {
   font-size: 1rem;        /* お好みで 0.8rem, 12px などに調整 */
@@ -513,6 +516,19 @@ th, td {
   border-radius: 4px;
   color: #333;
 }
+/* history.css などに追加（任意） */
+.select-buttons button {
+  background-color: #fffefe;
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.select-buttons button:hover {
+  background-color: #e0e0e0;
+}
 @media screen and (max-width: 768px) {
   .table-grid-block,
   .table-grid-block2 {
@@ -524,6 +540,7 @@ th, td {
   .block-wrapper {
     flex: 0 0 calc(20% - 0.2rem);
     min-width: 70px;
+    height:100%;
   }
 .block-wrapper h3 {
   font-size: 0.6rem;        /* お好みで 0.8rem, 12px などに調整 */
@@ -554,6 +571,7 @@ th, td {
   }
   .exp-csv-btn {
     width: 100%;
+    height:100%;
     min-width: unset;
     font-size: 0.7rem;
     padding: 8px 0;
