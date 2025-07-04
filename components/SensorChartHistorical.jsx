@@ -99,7 +99,7 @@ export default function SensorChart({ data, selectedFields = [] }) {
   };
 
   const yAxisRangeMap = {
-    "Avg. Temperature": { min: -20, max: 70 },
+    "Avg. Temperature": { min: 0, max: 40 },
     "Avg. Humidity": { min: 0, max: 100 },
     "Avg.CO2": { min: 0, max: 1000 },
     "PPFD average value (10 to 14 o'clock) (L)": { min: 0, max: 3000 },

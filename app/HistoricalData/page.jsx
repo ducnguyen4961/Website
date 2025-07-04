@@ -113,14 +113,24 @@ export default function DashboardPage() {
       <form onSubmit={fetchData} id="filterForm">
         <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required />
         <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} required />
-        <div className="take-data">
-          <button type="submit" disabled={loading}>
-            {loading ? 'Loading...' : 'データ取得'}
-          </button>
-        </div>
+          <div className="take-data">
+            <button type="submit" disabled={loading}>
+              {loading ? (
+                <span className="material-symbols-outlined spin">cloud_sync</span>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined">cloud_download</span>
+                </>
+              )}
+            </button>
+          </div>
         <div className="block-wrapper">
-          <button className="exp-csv-btn" onClick={() => exportCSV(sensorData, false, selectedFields)}>
-             EXP CSV
+          <button
+            className="exp-csv-btn"
+            onClick={() => exportCSV(sensorData, false, selectedFields)}
+          >
+            <span className="material-symbols-outlined">Draft</span>
+            CSV
           </button>
         </div>
       </form>

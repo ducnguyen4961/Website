@@ -47,7 +47,7 @@ function Navbar() {
               onMouseLeave={() => setIsProfileOpen(false)}
             >
               <div className="profile-btn" role="button" tabIndex={0}>
-                <span className="material-symbols-outlined">manage_accounts</span>
+                <span className="material-symbols-outlined">Person</span>
               </div>
               {isProfileOpen && (
                 <div className="dropdown-content">
@@ -73,7 +73,7 @@ function Navbar() {
                   <a href="/RadarChart">
                     <span className="material-symbols-outlined">pie_chart</span>レーダーチャート
                   </a>
-                  {user.role && user.role !== 'user' && (
+                  {user.role == 'admin' && (
                     <a href="/register-slave">
                       <span className="material-symbols-outlined">devices_other</span>デバイス
                     </a>
@@ -81,9 +81,11 @@ function Navbar() {
                   <a href="/config-form">
                     <span className="material-symbols-outlined">settings_b_roll</span>ユーザ設定
                   </a>
-                  <a href="/HistoricalData">
-                    <span className="material-symbols-outlined">history</span>過去のデータ
-                  </a>
+                  {(user.role === 'user_csv' || user.role === 'admin') && (
+                    <a href="/HistoricalData">
+                      <span className="material-symbols-outlined">history</span>有線 ver.
+                    </a>
+                  )}
                 </div>
               )}
             </div>
