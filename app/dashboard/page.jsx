@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect,useContext } from 'react';
 import './dashboard.css';
 import { exportCSV } from '@/components/exportCSV'; 
 import dynamic from 'next/dynamic';
@@ -8,6 +8,9 @@ import { useRouter } from 'next/navigation';
 import { formatTimestamp, formatRawTimestamp,formatDateOnly} from '@/components/utils'; 
 import Link from 'next/link';
 import DeviceSelector from '@/components/DeviceSelector';
+import { AuthContext } from "@/context/Authcontext";
+import MultiTemperatureStats from "@/components/MultiTemperatureStats";
+
 
 const SensorChartGroup = dynamic(() => import('@/components/SensorChartGroup'), { ssr: false });
 const SensorChart = dynamic(() => import('@/components/SensorChart'), { ssr: false });
@@ -31,6 +34,19 @@ export default function DashboardPage() {
   const encodedDeviceId = encodeURIComponent(deviceIdList.join(','));
   const [hasAutoFetched, setHasAutoFetched] = useState(false);
   const [readyToFetch, setReadyToFetch] = useState(false);
+  const { logout } = useContext(AuthContext);
+
+  useEffect(() => {
+    const idToken = localStorage.getItem('idToken');
+    const loginTime = localStorage.getItem('loginTime');
+    const now = Date.now();
+    const MAX_SESSION_DURATION = 24 *60 * 60 * 1000;
+    if (!idToken || !loginTime || now - parseInt(loginTime) > MAX_SESSION_DURATION) {
+      localStorage.clear();
+      logout();
+      router.push('/login');
+    }
+  }, []);
 
   // 新しいデバイスの追加の場合には、ページをアクセスしてから、5分後にリロードしたら、新しいのが受けられる
   useEffect(() => {
@@ -321,20 +337,20 @@ export default function DashboardPage() {
   const groupedDaily = groupByDevice(data.daily);
   const groupedMergedDaily = groupByDevice(mergedDaily);
   // SensorChartと同じデフォルト表示（true:表示, false:非表示）
-const defaultVisibleFields = {
-  temperature: false,
-  humidity: false,
-  CO2: false,
-  NIR: true,
-  VR: true,
-  PPFD: true,
-  soil_mois: false,
-  soil_EC: false,
-  soil_temp: false,
-  satur: false,
-  lai: false,
-  area_per_plant: false,
-};
+  const defaultVisibleFields = {
+    temperature: false,
+    humidity: false,
+    CO2: false,
+    NIR: true,
+    VR: true,
+    PPFD: true,
+    soil_mois: false,
+    soil_EC: false,
+    soil_temp: false,
+    satur: false,
+    lai: false,
+    area_per_plant: false,
+  };
 
 // マルチプルセレクト用state（trueのものだけ初期選択）
 const [selectedFields, setSelectedFields] = useState(
@@ -438,11 +454,11 @@ return (
           <div key={deviceId} className="block-wrapper">
             <h3>{deviceId}</h3>
             <button
-  className="exp-csv-btn"
-  onClick={() => exportCSV(deviceData, true, CSV_FIELDS_DAILY)}
->
-  EXP CSV
-</button>
+            className="exp-csv-btn"
+            onClick={() => exportCSV(deviceData, true, CSV_FIELDS_DAILY)}
+            >
+              EXP CSV
+            </button>
             <div className="block-container">
               {deviceData.slice(-1).map((item, index) => (
                 <div key={`merged-block-${deviceId}-${index}`} className="block-item">
@@ -467,11 +483,11 @@ return (
           <div key={deviceId} className="block-wrapper">
             <h3>{deviceId}</h3>
             <button
-  className="exp-csv-btn"
-  onClick={() => exportCSV(deviceData, false, CSV_FIELDS)}
->
-  EXP CSV
-</button>
+            className="exp-csv-btn"
+            onClick={() => exportCSV(deviceData, false, CSV_FIELDS)}
+            >
+              EXP CSV
+            </button>
             <div className="block-container">
               {deviceData.slice(-1).map((item, index) => (
                 <div key={`raw-block-${deviceId}-${index}`} className="block-item">
@@ -496,11 +512,11 @@ return (
           <div key={deviceId} className="block-wrapper">
             <h3>{deviceId}</h3>
             <button
-  className="exp-csv-btn"
-  onClick={() => exportCSV(deviceData, true, CSV_FIELDS)}
->
-  EXP CSV
-</button>
+            className="exp-csv-btn"
+            onClick={() => exportCSV(deviceData, true, CSV_FIELDS)}
+            >
+              EXP CSV
+            </button>
             <div className="block-container">
               {deviceData.slice(-1).map((item, index) => (
                 <div key={`agg-block-${deviceId}-${index}`} className="block-item">
@@ -575,13 +591,14 @@ return (
         </div>
 
         {/* --- SensorChart 縦並び表示 --- */}
-<div>
-          {Object.entries(isSingleDay ? groupedRaw : groupedHourly).map(([deviceId, deviceData]) => (
-      <div key={deviceId}>
-        <SensorChart data={deviceData} />
-      </div>
-          ))}
-</div>
+        <div>
+          <MultiTemperatureStats deviceIds={deviceIdList} />
+          <div className="chart-grid">
+            {Object.entries(groupedData).map(([deviceId, data]) => (
+              <SensorChart key={deviceId} data={data} deviceId={deviceId} />
+            ))}
+          </div>
+        </div>
       </>
     )}
     </div>

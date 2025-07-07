@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo} from 'react';
+import React, { useState, useMemo, useRef} from 'react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -16,15 +16,18 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 import 'chartjs-adapter-date-fns';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import "./SensorChart.css";
 ChartJS.register(LineElement, PointElement, Tooltip, Legend, CategoryScale, LinearScale, TimeScale, zoomPlugin);
-export default function SensorChart({ data }) {
+export default function SensorChart({ data, deviceId }) {
   const hasData = Array.isArray(data) && data.length > 0;
+  const chartRef = useRef(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [visibleLines, setVisibleLines] = useState({
     temperature: false,
     humidity: false,
     CO2: false,
-    NIR: true,
-    VR: true,
+    NIR: false,
+    VR: false,
     PPFD: true,
     soil_mois: false,
     soil_EC: false,
@@ -355,49 +358,48 @@ export default function SensorChart({ data }) {
   });
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* ボタンリストをMultiple Selectに変更 */}
-      <div className="w-64" style={selectStyle}>
-        {Object.keys(visibleLines).map(field => (
-          <div
-            key={field}
-            onClick={() => toggleLine(field)}
-            style={optionStyle(visibleLines[field], cssColorMap[field])}
-          >
-            <input
-              type="checkbox"
-              checked={visibleLines[field]}
-              onChange={() => {}}
-              style={{ cursor: 'pointer' }}
-            />
-            <span>{labelMap[field]}</span>
-          </div>
-        ))}
+    <div className="sensor-chart-wrapper">
+      <button className="fullscreen-btn" onClick={() => setIsFullscreen(true)}>🔍zoom デバイス: {deviceId}</button>
+
+      <div className="chart-container">
+        {hasData ? (
+          <Line ref={chartRef} data={chartData} options={options} />
+        ) : (
+          <p>No data to show</p>
+        )}
       </div>
 
-      {/* グラフコンテナ - スクロール可能エリア */}
-      <div className="chart-container" style={{ height: '400px', overflow: 'hidden' }}>
-        <div className="chart-scroll-area" style={{ 
-          width: '100%', 
-          height: '100%',
-          overflowX: 'auto',
-          overflowY: 'hidden'
-        }}>
-          <div style={{ minWidth: '2000px', height: '100%' }}>
-            {hasData ? (
-              <Line 
-                data={chartData} 
-                options={{
-                  ...options,
-                  maintainAspectRatio: false
-                }} 
-              />
-            ) : (
-              <p>No data to show chart</p>
-            )}
+      {isFullscreen && (
+        <div className="fullscreen-modal" onClick={() => setIsFullscreen(false)}>
+          <div className="fullscreen-content" onClick={(e) => e.stopPropagation()}>
+            <button className="close-btn" onClick={() => setIsFullscreen(false)}>✖</button>
+
+            <div className="flex flex-col md:flex-row gap-6 mb-4">
+              <div className="w-64" style={selectStyle}>
+                {Object.keys(visibleLines).map(field => (
+                  <div
+                    key={field}
+                    onClick={() => toggleLine(field)}
+                    style={optionStyle(visibleLines[field], cssColorMap[field])}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={visibleLines[field]}
+                      onChange={() => {}}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <span>{labelMap[field]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="chart-fullscreen">
+              <Line ref={chartRef} data={chartData} options={options} />
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

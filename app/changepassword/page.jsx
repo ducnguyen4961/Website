@@ -4,6 +4,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { CognitoUserPool } from 'amazon-cognito-identity-js';
 import './changepassword.css';
 import { useRouter } from 'next/navigation';
+import { AuthContext } from "@/context/Authcontext";
 
 const poolData = {
   UserPoolId: 'ap-northeast-1_5RFZ7tKmp',
@@ -17,6 +18,18 @@ export default function ChangePasswordPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
+  useEffect(() => {
+    const { logout } = useContext(AuthContext);
+    const idToken = localStorage.getItem('idToken');
+    const loginTime = localStorage.getItem('loginTime');
+    const now = Date.now();
+    const MAX_SESSION_DURATION = 24 * 60 * 60 * 1000;
+    if (!idToken || !loginTime ||isNaN(parseInt(loginTime)) || now - parseInt(loginTime) > MAX_SESSION_DURATION) {
+      localStorage.clear();
+      logout();
+      router.push('/login');
+    }
+  }, []);
 
   useEffect(() => {
     const user = userPool.getCurrentUser();

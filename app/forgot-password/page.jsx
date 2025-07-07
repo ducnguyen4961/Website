@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { CognitoUser } from "amazon-cognito-identity-js";
 import Pool from "@/components/UserPool";
 import "./forgot-password.css";
+import { AuthContext } from "@/context/Authcontext";
 import { useRouter } from 'next/navigation';
 
 export default function ForgotPasswordPage() {
@@ -15,6 +16,19 @@ export default function ForgotPasswordPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
+  useEffect(() => {
+    const { logout } = useContext(AuthContext);
+    const idToken = localStorage.getItem('idToken');
+    const loginTime = localStorage.getItem('loginTime');
+    const now = Date.now();
+    const MAX_SESSION_DURATION = 24 * 60 * 60 * 1000;
+    if (!idToken || !loginTime ||isNaN(parseInt(loginTime)) || now - parseInt(loginTime) > MAX_SESSION_DURATION) {
+      localStorage.clear();
+      logout();
+      router.push('/login');
+    }
+  }, []);
+
 
   const getUser = () => {
     return new CognitoUser({

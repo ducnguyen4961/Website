@@ -1,5 +1,4 @@
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0');
-
 * {
   box-sizing: border-box;
   margin: 0;
@@ -20,16 +19,20 @@ body {
   background-color: #ffffff;
   color: white;
   padding: 10px 20px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+
 }
 
 .logo {
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: auto;
+  margin-bottom: 10px;
 }
 
-.logo img {
-  height: 80px;
+.logo-img {
+  height: 70px !important;
   margin-right: 20px;
 }
 .right-link {
@@ -154,6 +157,7 @@ body {
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  width: 100%;
   margin-top: 8px;
 }
 
@@ -170,6 +174,12 @@ main {
   cursor: pointer;
   transition: opacity 0.3s;
 }
+.logo-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 
 .logo-link:hover {
   opacity: 0.8;
@@ -187,6 +197,11 @@ main {
 .chart-scroll-area::-webkit-scrollbar-track {
   background: transparent;
 }
+.logo-img {
+  height: 70px;
+  margin-right: 20px;
+}
+
 
 .chart-scroll-area::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.3);
@@ -226,17 +241,6 @@ main {
     padding: 10px;
   }
 
-  .logo {
-    justify-content: center;
-    width: 100%;
-    margin-bottom: 10px;
-  }
-
-  .logo img {
-    height: 60px;
-    margin-right: 10px;
-  }
-
   .right-link,
   .left-link {
     flex-direction: column;
@@ -261,10 +265,6 @@ main {
     top: auto;
     position: static;
     margin-top: 10px;
-  }
-
-  .logout-btn {
-    width: 100%;
   }
 
   main {

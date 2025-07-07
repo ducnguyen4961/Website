@@ -18,22 +18,17 @@ const poolData = {
 };
 const userPool = new CognitoUserPool(poolData);
 const setAuthCookie = (email, role, idToken) => {
-  const cookieOptions = {
-    path: '/',
-    //maxAge: 60 * 60 * 24 ,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax'
-  };
-  document.cookie = `userEmail=${email}; ${Object.entries(cookieOptions)
-    .map(([key, value]) => `${key}=${value}`)
-    .join('; ')}`;
-  document.cookie = `userRole=${role}; ${Object.entries(cookieOptions)
-    .map(([key, value]) => `${key}=${value}`)
-    .join('; ')}`;
-  document.cookie = `idToken=${idToken}; ${Object.entries(cookieOptions)
-    .map(([key, value]) => `${key}=${value}`)
-    .join('; ')}`;
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toUTCString();
+
+  const cookieOptions = `expires=${expires}; path=/; SameSite=Lax${
+    process.env.NODE_ENV === 'production' ? '; Secure' : ''
+  }`;
+
+  document.cookie = `userEmail=${email}; ${cookieOptions}`;
+  document.cookie = `userRole=${role}; ${cookieOptions}`;
+  document.cookie = `idToken=${idToken}; ${cookieOptions}`;
 };
+
 export default function LoginPage() {
   const { login } = useContext(AuthContext);
   const router = useRouter();
@@ -78,6 +73,7 @@ export default function LoginPage() {
 
         localStorage.setItem("userEmail", email);
         localStorage.setItem("idToken", idToken);
+        localStorage.setItem("loginTime", Date.now().toString());
         localStorage.setItem("userRole", userInfo.role);
         localStorage.setItem("house", userInfo.house_device);
         localStorage.setItem("slaveIds", JSON.stringify(userInfo.slave_ids));
@@ -157,6 +153,7 @@ export default function LoginPage() {
         setAuthCookie(email, userInfo.role, idToken);
         localStorage.setItem("userEmail", email);
         localStorage.setItem("idToken", idToken);
+        localStorage.setItem("loginTime", Date.now().toString());
         localStorage.setItem("userRole", userInfo.role);
         localStorage.setItem("house", userInfo.house_device);
         localStorage.setItem("slaveIds", JSON.stringify(userInfo.slave_ids));
@@ -208,6 +205,7 @@ export default function LoginPage() {
           setAuthCookie(email, userInfo.role, idToken);
           localStorage.setItem("userEmail", email);
           localStorage.setItem("idToken", idToken);
+          localStorage.setItem("loginTime", Date.now().toString());
           localStorage.setItem("userRole", userInfo.role);
           localStorage.setItem("house", userInfo.house_device);
           localStorage.setItem("slaveIds", JSON.stringify(userInfo.slave_ids));

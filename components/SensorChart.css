@@ -1,0 +1,77 @@
+
+.sensor-chart-wrapper {
+  position: relative;
+}
+
+.fullscreen-btn {
+  background-color: #f3f4f6;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.fullscreen-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Modal nền mờ */
+.fullscreen-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* Nội dung biểu đồ */
+.fullscreen-content {
+  position: relative;
+  background: white;
+  width: 90%;
+  height: 95%;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Biểu đồ trong modal */
+.chart-fullscreen {
+  width: 100%;
+  height: 90%;
+}
+
+/* Nút đóng */
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+}
+.close-btn:hover {
+  color: black;
+}
+.sensor-chart-wrapper {
+  background: #f9f9f9;
+  padding: 16px;
+  margin: 10px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  width: 300px;
+  flex: 1;
+}
+.chart-container {
+  width: 100%;
+  height: auto;
+}

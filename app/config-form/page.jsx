@@ -1,8 +1,12 @@
 'use client';
 import './config-form.css';
-import { useState, useEffect } from 'react';
+import { useRouter} from 'next/navigation';
+import { useState, useContext, useEffect } from 'react';
+import { AuthContext } from "@/context/Authcontext";
 
 export default function ConfigForm() {
+  const router = useRouter();
+  const { logout } = useContext(AuthContext);
   const [rows, setRows] = useState(
     Array.from({ length: 3 }, () => ({ house_device: '', kuboma: '', jouma: '' }))
   );
@@ -33,6 +37,17 @@ export default function ConfigForm() {
     }
     if (savedCO2s) {
       setTargetCO2s(JSON.parse(savedCO2s));
+    }
+  }, []);
+  useEffect(() => {
+    const idToken = localStorage.getItem('idToken');
+    const loginTime = localStorage.getItem('loginTime');
+    const now = Date.now();
+    const MAX_SESSION_DURATION = 24 * 60 * 60 * 1000;
+    if (!idToken || !loginTime ||isNaN(parseInt(loginTime)) || now - parseInt(loginTime) > MAX_SESSION_DURATION) {
+      localStorage.clear();
+      logout();
+      router.push('/login');
     }
   }, []);
 

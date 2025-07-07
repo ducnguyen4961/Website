@@ -1,18 +1,33 @@
 "use client";
 
-import { useState } from "react";
-import MFASetup from "./MFASetup"; // kiểm tra path
+import { useState, useEffect } from "react";
+import MFASetup from "./MFASetup";
+import { useRouter } from 'next/navigation';
 import './NewPasswordForm.css';
 
 export default function NewPasswordForm({ cognitoUser, userAttributes, onSuccess, onFailure }) {
   const [newPassword, setNewPassword] = useState("");
   const [error, setError] = useState("");
   const [showMFASetup, setShowMFASetup] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+      const idToken = localStorage.getItem('idToken');
+      const loginTime = localStorage.getItem('loginTime');
+      const now = Date.now();
+      const MAX_SESSION_DURATION = 24 * 60 * 60 * 1000;
+      if (!idToken || !loginTime || now - parseInt(loginTime) > MAX_SESSION_DURATION) {
+        localStorage.clear();
+        router.push('/login');
+      }
+    }, []);
 
   const handleMFASetup = (challengeName, challengeParameters) => {
     console.log("MFA setup required during new password challenge");
     setShowMFASetup(true);
   };
+  
+  
 
   const handleChangePassword = (e) => {
     e.preventDefault();

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect,useContext } from 'react';
 import { Radar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -14,6 +14,8 @@ import { useRouter } from 'next/navigation';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 import "./RadarChart.css";
+import { AuthContext } from "@/context/Authcontext";
+
 
 export default function RadarChart() {
   const [deviceId, setDeviceId] = useState('');
@@ -22,9 +24,20 @@ export default function RadarChart() {
   const [selectedHour, setSelectedHour] = useState('0');
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
+  const { logout } = useContext(AuthContext);
   const router = useRouter();
+  useEffect(() => {
+    const idToken = localStorage.getItem('idToken');
+    const loginTime = localStorage.getItem('loginTime');
+    const now = Date.now();
+    const MAX_SESSION_DURATION = 24 * 60 * 60 * 1000;
 
-  
+    if (!idToken || !loginTime ||isNaN(parseInt(loginTime)) || now - parseInt(loginTime) > MAX_SESSION_DURATION) {
+      localStorage.clear();
+      logout();
+      router.push('/login');
+    }
+  }, []);
   const maxValues = {
     Temperature: 50,
     Humidity: 100,

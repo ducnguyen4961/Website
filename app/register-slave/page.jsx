@@ -1,18 +1,33 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useContext } from "react";
+import { useRouter } from "next/navigation";
 import "./register-slave.css";
+import { AuthContext } from "@/context/Authcontext";
 
 export default function RegisterDevicePage() {
   const [houseDevice, setHouseDevice] = useState('');
   const [slaveID, setSlaveID] = useState('');
+  const { logout } = useContext(AuthContext);
   const [selectedEmail, setSelectedEmail] = useState('');
   const [selectedName, setSelectedName] = useState('');
   const [emailList, setEmailList] = useState([]);
   const [emailToNameMap, setEmailToNameMap] = useState({});
   const [status, setStatus] = useState('');
   const [emailToUsernameMap, setEmailToUsernameMap] = useState({});
+  const router = useRouter();
   useEffect(() => {
+    const idToken = localStorage.getItem("idToken");
+    const loginTime = localStorage.getItem("loginTime");
+
+    const MAX_SESSION_DURATION = 24 * 60 * 60 * 1000;
+    const now = Date.now();
+
+    if (!idToken || !loginTime ||isNaN(parseInt(loginTime)) || now - parseInt(loginTime) > MAX_SESSION_DURATION) {
+      localStorage.clear();
+      logout();
+      router.push("/login");
+    }
   const fetchUserList = async () => {
     const idToken = localStorage.getItem("idToken");
     if (!idToken) return;
