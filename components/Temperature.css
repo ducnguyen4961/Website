@@ -64,3 +64,8 @@
   gap: 16px;
   justify-content: flex-start;
 }
+.material-symbols-outlined {
+  font-size: 28px; /* ← お好みで16px, 32px, 48pxなど */
+  vertical-align: middle; /* テキストと揃えるなら追加 */
+  margin-right: 4px; /* テキストとの間に余白 */
+}

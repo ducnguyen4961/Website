@@ -49,24 +49,24 @@ const SENSOR_LABELS = {
 const SENSOR_INITIAL_MAP = {
   "PPFD average value (10 to 14 o'clock) (L)": true,
   "Sensor 1Avg.NIR (f)": true,
-  "Sensor 2Avg.NIR (f)": true,
+  "Sensor 2Avg.NIR (f)": false,
   "Sensor 3Avg.NIR (f)": false,
   "Sensor 1Avg.VR (f)": true,
-  "Sensor 2Avg.VR (f)": true,
+  "Sensor 2Avg.VR (f)": false,
   "Sensor 3Avg.VR (f)": false,
   "Avg. Temperature": false,
   "Avg. Humidity": false,
   "Avg.CO2": false,
   "Sensor 1 LAI": true,
-  "Sensor 2 LAI": true,
+  "Sensor 2 LAI": false,
   "Sensor 3 LAI": false,
   "Sensor 1 area_per_plant": true,
-  "Sensor 2 area_per_plant": true,
+  "Sensor 2 area_per_plant": false,
   "Sensor 3 area_per_plant": false,
 };
 
 export default function DashboardPage() {
-  const [startDate, setStartDate] = useState('2024-01-01');
+  const [startDate, setStartDate] = useState('2023-01-01');
   const [endDate, setEndDate] = useState('');
   const [loading, setLoading] = useState(false);
   const [sensorData, setSensorData] = useState([]);
@@ -116,10 +116,10 @@ export default function DashboardPage() {
           <div className="take-data">
             <button type="submit" disabled={loading}>
               {loading ? (
-                <span className="material-symbols-outlined spin">cloud_sync</span>
+                 <span className="material-symbols-outlined spin">app_badging</span>
               ) : (
                 <>
-                  <span className="material-symbols-outlined">cloud_download</span>
+                  <span className="material-symbols-outlined">ssid_chart</span>
                 </>
               )}
             </button>
@@ -129,7 +129,7 @@ export default function DashboardPage() {
             className="exp-csv-btn"
             onClick={() => exportCSV(sensorData, false, selectedFields)}
           >
-            <span className="material-symbols-outlined">Draft</span>
+            <span className="material-symbols-outlined">cloud_download</span>
             CSV
           </button>
         </div>

@@ -116,10 +116,10 @@ export default function DashboardPage() {
           <div className="take-data">
             <button type="submit" disabled={loading}>
               {loading ? (
-                <span className="material-symbols-outlined spin">cloud_sync</span>
+                 <span className="material-symbols-outlined spin">app_badging</span>
               ) : (
                 <>
-                  <span className="material-symbols-outlined">cloud_download</span>
+                  <span className="material-symbols-outlined">ssid_chart</span>
                 </>
               )}
             </button>
@@ -129,7 +129,7 @@ export default function DashboardPage() {
             className="exp-csv-btn"
             onClick={() => exportCSV(sensorData, false, selectedFields)}
           >
-            <span className="material-symbols-outlined">Draft</span>
+            <span className="material-symbols-outlined">cloud_download</span>
             CSV
           </button>
         </div>

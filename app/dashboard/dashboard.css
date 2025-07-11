@@ -97,12 +97,29 @@ canvas {
   margin-top: 0 !important;
 }
 .take-data button {
-  background-color: #007bff; 
-  color: white;
+  background-color: #ffffff;
+  color: rgb(0, 0, 0);
+  padding: 10px 16px;
+  font-size: 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
 }
 
 .take-data button:hover {
-  background-color: #ff0220;
+  background-color: #a1a1a1;
+  box-shadow: 0 4px 10px rgba(0, 123, 255, 0.4);
+}
+
+.take-data button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 .export button {
   background-color: #ffffff; 
@@ -342,23 +359,56 @@ th, td {
 
 /* EXP CSVボタン用スタイル */
 .exp-csv-btn {
-  background-color: #979797;
-  color: #fff;
+  background-color: #ffffff;
+  color: rgb(0, 0, 0);
+  padding: 10px 16px;
+  font-size: 30px;
   border: none;
-  border-radius: 4px;
-  padding: 6px 16px;
-  font-size: 1rem;
-  font-weight: bold;
+  border-radius: 8px;
   cursor: pointer;
-  margin-bottom: 8px;
-  transition: background 0.2s;
+  transition: background-color 0.3s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);
 }
+
 .exp-csv-btn:hover,
 .exp-csv-btn:focus {
-  background-color: #1565c0;
+  background-color: #e0e0e0;
+}
+/* history.css などに追加（任意） */
+.select-buttons button {
+  background-color: #fffefe;
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 4px;
 }
 
+.select-buttons button:hover {
+  background-color: #e0e0e0;
+}
+.material-symbols-outlined {
+  font-size: 20px; /* ← お好みで16px, 32px, 48pxなど */
+  vertical-align: middle; /* テキストと揃えるなら追加 */
+  margin-right: 2px; /* テキストとの間に余白 */
+}
+.spin {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
 
+/* 回転アニメーションの定義 */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 @media screen and (max-width: 768px) {
   .table-grid-block,
   .table-grid-block2 {

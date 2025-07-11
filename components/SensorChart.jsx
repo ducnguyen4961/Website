@@ -96,15 +96,15 @@ export default function SensorChart({ data, deviceId }) {
   };
   const labelMap = {
     temperature: '温度 (°C)',
-    humidity: '湿度 (%)',
-    CO2: 'CO2 (ppm)',
+    humidity: '湿度 (%RH)',
+    CO2: 'CO₂ (ppm)',
     NIR: 'NIR (mV)',
     VR: 'VR (mV)',
     PPFD: 'PPFD (μmol/ms)',
     soil_mois: '土壌水分 (%)',
     soil_EC: '土壌EC (mS/cm)',
     soil_temp: '土壌温度 (°C)',
-    satur:'飽差 (g/m3)',
+    satur:'飽差 (g/m³)',
   };
   const isAggregated = data.length > 0 && 'samples' in data[0];
   const fields = [
@@ -252,8 +252,8 @@ export default function SensorChart({ data, deviceId }) {
         offset: true,
         grid: { drawOnChartArea: false },
         title: { display: true, text: labelMap.CO2 },
-        min: -20,
-        max: 4000,
+        min: 0,
+        max: 3000,
       },
       y4: {
         type: 'linear',
@@ -263,7 +263,7 @@ export default function SensorChart({ data, deviceId }) {
         grid: { drawOnChartArea: false },
         title: { display: true, text: labelMap.NIR },
         min: 0,
-        max: 1000,
+        max: 6000,
       },
       y5: {
         type: 'linear',
@@ -272,7 +272,7 @@ export default function SensorChart({ data, deviceId }) {
         offset: true,
         grid: { drawOnChartArea: false },
         title: { display: true, text: labelMap.VR },
-        min: -20,
+        min: 0,
         max: 6000,
       },
       y6: {
@@ -323,7 +323,7 @@ export default function SensorChart({ data, deviceId }) {
         grid: { drawOnChartArea: false },
         title: { display: true, text: labelMap.satur },
         min: 0,
-        max: 20,
+        max: 5,
       },
     },
   };
@@ -359,7 +359,10 @@ export default function SensorChart({ data, deviceId }) {
 
   return (
     <div className="sensor-chart-wrapper">
-      <button className="fullscreen-btn" onClick={() => setIsFullscreen(true)}>🔍zoom デバイス: {deviceId}</button>
+      <button className="fullscreen-btn" onClick={() => setIsFullscreen(true)}>
+        <span className="material-symbols-outlined icon-small">search</span>
+        {deviceId}
+      </button>
 
       <div className="chart-container">
         {hasData ? (

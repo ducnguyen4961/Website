@@ -542,6 +542,20 @@ th, td {
   font-size: 24px;
   vertical-align: middle;
 }
+.spin {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+/* 回転アニメーションの定義 */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 @media screen and (max-width: 768px) {
   .table-grid-block,
   .table-grid-block2 {

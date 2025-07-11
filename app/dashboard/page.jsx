@@ -390,15 +390,15 @@ const chartFieldList = [
 ];
 const chartLabelMap = {
   temperature: '温度 (°C)',
-  humidity: '湿度 (%)',
-  CO2: 'CO2 (ppm)',
+  humidity: '湿度 (%RH)',
+  CO2: 'CO₂ (ppm)',
   NIR: 'NIR (mV)',
   VR: 'VR (mV)',
   PPFD: 'PPFD (μmol/ms)',
   soil_mois: '土壌水分 (%)',
   soil_EC: '土壌EC (mS/cm)',
   soil_temp: '土壌温度 (°C)',
-  satur: '飽差 (g/m3)',
+  satur: '飽差 (g/m³)',
   lai: '株間LAI',
   area_per_plant: '株当たり葉面積',
 };
@@ -436,29 +436,54 @@ function ChartFieldMultiSelect({ fields, selected, onChange }) {
 
 return (
   <div className="fetch-data">
-    <h1>🌱uruoi navi🌱</h1>
-
+    {/* isSingleDay/!isSingleDayのみマルチプルセレクト対応 */}
     {/* isSingleDay/!isSingleDayのみマルチプルセレクト対応 */}
     {(isSingleDay || (!isSingleDay && (data.hourly.length > 0 || data.daily.length > 0))) && (
-      <ChartFieldMultiSelect
-        fields={chartFieldList}
-        selected={selectedFields}
-        onChange={setSelectedFields}
-      />
+      <>
+        {/* 🔽 全選択・全解除ボタン */}
+        <div className="select-buttons" style={{ marginBottom: '10px' }}>
+          <button
+            type="button"
+            onClick={() => setSelectedFields(chartFieldList)}
+            className="select-all-btn"
+          >
+            <span className="material-symbols-outlined">select_all</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedFields([])}
+            className="deselect-all-btn"
+            style={{ marginLeft: '10px' }}
+          >
+            <span className="material-symbols-outlined">deselect</span>
+          </button>
+        </div>
+
+        {/* ✅ チャートフィールド選択UI */}
+        <ChartFieldMultiSelect
+          fields={chartFieldList}
+          selected={selectedFields}
+          onChange={setSelectedFields}
+        />
+      </>
     )}
+
 
     {/* --- mergedDailyは従来通り --- */}
     {mergedDaily.length > 0 && (
       <div className="table-grid-block">
         {Object.entries(groupedMergedDaily).map(([deviceId, deviceData]) => (
           <div key={deviceId} className="block-wrapper">
-            <h3>{deviceId}</h3>
-            <button
-            className="exp-csv-btn"
-            onClick={() => exportCSV(deviceData, true, CSV_FIELDS_DAILY)}
-            >
-              EXP CSV
-            </button>
+            <h3>{deviceId.replace(`${houseId}#`, '')}</h3>
+            <div className="block-wrapper">
+              <button
+                className="exp-csv-btn"
+                onClick={() => exportCSV(deviceData, true, CSV_FIELDS_DAILY)}
+              >
+                <span className="material-symbols-outlined">cloud_download</span>
+                
+              </button>
+            </div>
             <div className="block-container">
               {deviceData.slice(-1).map((item, index) => (
                 <div key={`merged-block-${deviceId}-${index}`} className="block-item">
@@ -481,13 +506,16 @@ return (
       <div className="table-grid-block">
         {Object.entries(groupedRaw).map(([deviceId, deviceData]) => (
           <div key={deviceId} className="block-wrapper">
-            <h3>{deviceId}</h3>
-            <button
-            className="exp-csv-btn"
-            onClick={() => exportCSV(deviceData, false, CSV_FIELDS)}
-            >
-              EXP CSV
-            </button>
+            <h3>{deviceId.replace(`${houseId}#`, '')}</h3>
+            <div className="block-wrapper">
+              <button
+                className="exp-csv-btn"
+                onClick={() => exportCSV(deviceData, false, CSV_FIELDS)}
+              >
+                <span className="material-symbols-outlined">cloud_download</span>
+                
+              </button>
+            </div>
             <div className="block-container">
               {deviceData.slice(-1).map((item, index) => (
                 <div key={`raw-block-${deviceId}-${index}`} className="block-item">
@@ -510,13 +538,16 @@ return (
       <div className="table-grid-block">
         {Object.entries(groupedData).map(([deviceId, deviceData]) => (
           <div key={deviceId} className="block-wrapper">
-            <h3>{deviceId}</h3>
-            <button
-            className="exp-csv-btn"
-            onClick={() => exportCSV(deviceData, true, CSV_FIELDS)}
-            >
-              EXP CSV
-            </button>
+            <h3>{deviceId.replace(`${houseId}#`, '')}</h3>
+            <div className="block-wrapper">
+              <button
+                className="exp-csv-btn"
+                onClick={() => exportCSV(deviceData, true, CSV_FIELDS)}
+              >
+                <span className="material-symbols-outlined">cloud_download</span>
+                
+              </button>
+            </div>
             <div className="block-container">
               {deviceData.slice(-1).map((item, index) => (
                 <div key={`agg-block-${deviceId}-${index}`} className="block-item">
@@ -574,7 +605,13 @@ return (
       />
       <div className="take-data">
         <button type="submit" disabled={loading}>
-          {loading ? 'Loading...' : 'データ取得'}
+          {loading ? (
+              <span className="material-symbols-outlined spin">app_badging</span>
+          ) : (
+            <>
+              <span className="material-symbols-outlined">ssid_chart</span>
+            </>
+          )}
         </button>
       </div>
     </form>
@@ -584,7 +621,7 @@ return (
         <div className="charts-scroll-container">
           {Object.entries(groupedMergedDaily).map(([deviceId, deviceData]) => (
             <div key={deviceId} className="chart-item.compact">
-              <h3>{deviceId}</h3>
+              <h3>{deviceId.replace(`${houseId}#`, '')}</h3>
               <SensorChartGroup data={deviceData} />
             </div>
           ))}
@@ -592,7 +629,7 @@ return (
 
         {/* --- SensorChart 縦並び表示 --- */}
         <div>
-          <MultiTemperatureStats deviceIds={deviceIdList} />
+          <MultiTemperatureStats deviceIds={deviceIdList} houseId={houseId} />
           <div className="chart-grid">
             {Object.entries(groupedData).map(([deviceId, data]) => (
               <SensorChart key={deviceId} data={data} deviceId={deviceId} />

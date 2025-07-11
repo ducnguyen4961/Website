@@ -75,3 +75,9 @@
   width: 100%;
   height: auto;
 }
+
+.material-symbols-outlined.icon-small {
+  font-size: 24px;         /* お好みで 16〜24px */
+  vertical-align: middle;  /* テキストとアイコンの高さを揃える */
+  margin-right: 4px;       /* テキストとの間にスペース */
+}

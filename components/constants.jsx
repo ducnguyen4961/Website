@@ -53,12 +53,12 @@ export const FIELD_LABELS = {
   soil_EC: '土壌EC(mS/cm)',
   soil_temp: '土壌温度(℃)',
   status: '状態',
-  lai: '株間LAI(cm2cm-2)',
+  lai: '株間LAI(cm²cm⁻²)',
   avg_NIR: 'Avg.NIR(mV)',
   avg_PPFD: 'Avg.PPFD(μmol/ms)',
   avg_VR: 'Avg.VR(mV)',
   nir_vr_ratio: 'Avg.NIR/VR(mV)',
-  area_per_plant: '株当たり葉面積(cm2P-1)',
+  area_per_plant: '株当たり葉面積(cm²P⁻¹)',
   satur: '飽差(g/m3)'
 };
 

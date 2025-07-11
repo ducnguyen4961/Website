@@ -1,5 +1,5 @@
 import './Temperature.css';
-const TemperatureStatsBox = ({ deviceId, stats }) => {
+const TemperatureStatsBox = ({ deviceId, stats, houseId }) => {
   const safeStats = {
     day: stats?.day ?? {},
     night: stats?.night ?? {}
@@ -12,8 +12,10 @@ const TemperatureStatsBox = ({ deviceId, stats }) => {
   return (
     <div className="temp-stats-container">
       <div className="section-header">
-        <h4 className="section-title">🌞 Daytime</h4>
-        <span className="section-date">日付: {yesterdayStr} ｜ デバイス: {deviceId}</span>
+        <div className="section-title">
+          <span className="material-symbols-outlined">sunny</span>
+        </div>
+        <span className="section-date">日付: {yesterdayStr}  {deviceId.replace(`${houseId}#`, '')}</span>
       </div>
       <div className="stats-grid day">
         <div className="stat-box day-box"><div className="stat-label">Max</div><div>{safeStats.day.max ?? '-'}°C</div></div>
@@ -21,7 +23,9 @@ const TemperatureStatsBox = ({ deviceId, stats }) => {
         <div className="stat-box day-box"><div className="stat-label">Avg</div><div>{safeStats.day.avg ?? '-'}°C</div></div>
       </div>
 
-      <h4 className="section-title night-title">🌚 Nighttime</h4>
+      <div className="section-title night-title">
+        <span className="material-symbols-outlined">dark_mode</span>
+      </div>
       <div className="stats-grid night">
         <div className="stat-box night-box"><div className="stat-label">Max</div><div>{safeStats.night.max ?? '-'}°C</div></div>
         <div className="stat-box night-box"><div className="stat-label">Min</div><div>{safeStats.night.min ?? '-'}°C</div></div>

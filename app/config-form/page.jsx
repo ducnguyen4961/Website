@@ -8,8 +8,16 @@ export default function ConfigForm() {
   const router = useRouter();
   const { logout } = useContext(AuthContext);
   const [rows, setRows] = useState(
-    Array.from({ length: 3 }, () => ({ house_device: '', kuboma: '', jouma: '' }))
+    Array.from({ length: 3 }, () => ({
+      house_device: '',
+      kuboma: '',
+      jouma: '',
+      set_date: '',     // ← 追加
+      base_temp: ''     // ← 追加
+    }))
   );
+
+
   const [targetCO2s, setTargetCO2s] = useState(
     Array.from({ length: 3 }, () => ({ house_device: '', target_co2: '' }))
   );
@@ -18,7 +26,10 @@ export default function ConfigForm() {
     house_device: [],
     kuboma: [],
     jouma: [],
+    base_temp: [],
+    set_date: [],
   });
+
   const [currentDevice, setCurrentDevice] = useState(
     Array.from({ length: 3 }, () => ({ house_device: '', kuboma: '', jouma: '' }))
   );
@@ -274,6 +285,39 @@ const handleSubmitSelftest = async (e) => {
 
   setMessage(messages.join('\n'));
 };
+const handleSubmittemp = async (e) => {
+  e.preventDefault();
+  setMessage('送信中（積算温度設定）...');
+
+  try {
+    const validRows = rows.filter((r) => r.house_device && r.set_date && r.base_temp);
+
+    await Promise.all(
+      validRows.map((row) =>
+        fetch('https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/Accumulated_Temperature_query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'put',
+            configs: [
+              {
+                house_device: row.house_device,
+                set_date: row.set_date,
+                base_temp: parseFloat(row.base_temp)
+              }
+            ]
+          }),
+        })
+      )
+    );
+
+    setMessage('積算温度の更新が完了しました!');
+  } catch (err) {
+    console.error(err);
+    setMessage('積算温度の更新に失敗しました!');
+  }
+};
+
   return (
     <div className="config-container">
       <h1 className="config-title">株間と条間を変更（ｃｍ）</h1>
@@ -308,45 +352,74 @@ const handleSubmitSelftest = async (e) => {
               />
             </div>
           ))}
-          <button type="submit" className="config-button">送信（距離）</button>
+          <button type="submit" className="config-button">送信</button>
         </form>
 
-<form onSubmit={handlesubmitkabumajoukan} className="config-form">
-  <div className="positioned-label">株間 　　　　　　　　　　　　条間</div>  
-  {currentDevice.map((device, index) => (
-    <div key={index} className="config-row">
-      <input
-        type="text"
-        list="house-device-list"
-        placeholder="デバイスID"
-        value={device.house_device}
-        onChange={(e) => {
-          const newDevices = [...currentDevice];
-          newDevices[index] = { ...device, house_device: e.target.value };
-          setCurrentDevice(newDevices);
-        }}
-        className="config-input"
-      />
-      <input
-        type="text"
-        value={device.kuboma}
-        readOnly
-        placeholder="株間 (cm)"
-        className="config-input"
-      />
-      <input
-        type="text"
-        value={device.jouma}
-        readOnly
-        placeholder="条間 (cm)"
-        className="config-input"
-      />
-    </div>
-  ))}
-  <button type="submit" className="config-button">現在値を取得</button>
-</form>
+      <form onSubmit={handlesubmitkabumajoukan} className="config-form">
+        <div className="positioned-label">株間 　　　　　　　　　　　　条間</div>  
+        {currentDevice.map((device, index) => (
+          <div key={index} className="config-row">
+            <input
+              type="text"
+              list="house-device-list"
+              placeholder="デバイスID"
+              value={device.house_device}
+              onChange={(e) => {
+                const newDevices = [...currentDevice];
+                newDevices[index] = { ...device, house_device: e.target.value };
+                setCurrentDevice(newDevices);
+              }}
+              className="config-input"
+            />
+            <input
+              type="text"
+              value={device.kuboma}
+              readOnly
+              placeholder="株間 (cm)"
+              className="config-input"
+            />
+            <input
+              type="text"
+              value={device.jouma}
+              readOnly
+              placeholder="条間 (cm)"
+              className="config-input"
+            />
+          </div>
+        ))}
+        <button type="submit" className="config-button">現在値を取得</button>
+      </form>
       </div>
-
+      <h2 className="config-title">積算温度設定</h2>
+      <form onSubmit={handleSubmittemp} className="config-form">
+        {rows.map((row, index) => (
+          <div key={index} className="config-row">
+            <input
+              type="text"
+              list="house-device-list"
+              placeholder="デバイスID"
+              value={row.house_device}
+              onChange={(e) => handleRowChange(index, 'house_device', e.target.value)}
+              className="config-input"
+            />
+            <input
+              type="date"
+              placeholder="設定日"
+              value={row.set_date}
+              onChange={(e) => handleRowChange(index, 'set_date', e.target.value)}
+              className="config-input"
+            />
+            <input
+              type="number"
+              placeholder="基準温度 (℃)"
+              value={row.base_temp}
+              onChange={(e) => handleRowChange(index, 'base_temp', e.target.value)}
+              className="config-input"
+            />
+          </div>
+        ))}
+        <button type="submit" className="config-button">送信</button>
+      </form>
 
       <h2 className="config-title">CO₂ キャリブレーション(校正)</h2>
       <form onSubmit={handleSubmitCO2} className="config-form1">
