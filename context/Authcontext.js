@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
     const role = getCookie('userRole') || localStorage.getItem('userRole');
     const loginTime = localStorage.getItem('loginTime');
     const now = Date.now();
-    const MAX_SESSION_DURATION = 24 * 60 * 60 * 1000;
+    const MAX_SESSION_DURATION = 10 * 60 * 60 * 1000;
     
     if (!email || !loginTime || now - parseInt(loginTime) > MAX_SESSION_DURATION) {
       setUser(null);

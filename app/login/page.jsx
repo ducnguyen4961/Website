@@ -18,7 +18,7 @@ const poolData = {
 };
 const userPool = new CognitoUserPool(poolData);
 const setAuthCookie = (email, role, idToken) => {
-  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toUTCString();
+  const expires = new Date(Date.now() + 10 * 60 * 60 * 1000).toUTCString();
 
   const cookieOptions = `expires=${expires}; path=/; SameSite=Lax${
     process.env.NODE_ENV === 'production' ? '; Secure' : ''

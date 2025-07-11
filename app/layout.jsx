@@ -93,12 +93,10 @@ function Navbar() {
                       </a>
                     </>
                   )}
-                  {(user.role === 'user_csv2' || user.role === 'admin') && (
-                    <>
-                      <a href="/HistoricalData/user_csv2">
-                        <span className="material-symbols-outlined">history</span>有線 ver.
-                      </a>
-                    </>
+                  {(user.role === 'admin' || user.role === 'user_csv2') && (
+                    <a href="/HistoricalData/user_csv2">
+                      <span className="material-symbols-outlined">history</span>有線 ver.
+                    </a>
                   )}
                 </div>
               )}
@@ -114,8 +112,6 @@ function Navbar() {
     </div>
   );
 }
-
-
 export default function RootLayout({ children }) {
   return (
     <html lang="ja">

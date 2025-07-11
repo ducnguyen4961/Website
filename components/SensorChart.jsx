@@ -43,7 +43,7 @@ export default function SensorChart({ data, deviceId }) {
     : startTime;
   const endTimestamp = data.endTimestamp
     ? new Date(data.endTimestamp)
-    : new Date(startTimestamp.getTime() + 6 * 60 * 60 * 1000);
+    : new Date(startTimestamp.getTime() + 10 * 60 * 60 * 1000);
   const extractAvgValue = (item, field) => {
     const samples = Number(item.samples);
     const total = Number(item[`total_${field}`]);

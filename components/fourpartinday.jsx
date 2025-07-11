@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import TemperatureStatsBox from "./TemperatureStatsBox";
-const MultiTemperatureStats = ({ deviceIds, houseId }) => {
+
+const MultiTemperatureStats = ({ deviceIds }) => {
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
 
@@ -46,8 +47,7 @@ const MultiTemperatureStats = ({ deviceIds, houseId }) => {
         <TemperatureStatsBox
           key={deviceId}
           deviceId={deviceId}
-          houseId={houseId}
-          stats={data[deviceId]}
+          stats={data?.[deviceId]}
         />
       ))}
     </div>

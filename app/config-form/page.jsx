@@ -54,7 +54,7 @@ export default function ConfigForm() {
     const idToken = localStorage.getItem('idToken');
     const loginTime = localStorage.getItem('loginTime');
     const now = Date.now();
-    const MAX_SESSION_DURATION = 24 * 60 * 60 * 1000;
+    const MAX_SESSION_DURATION = 10 * 60 * 60 * 1000;
     if (!idToken || !loginTime ||isNaN(parseInt(loginTime)) || now - parseInt(loginTime) > MAX_SESSION_DURATION) {
       localStorage.clear();
       logout();
@@ -195,7 +195,6 @@ const handleSubmitCO2 = async (e) => {
         if (!ackRes.ok) continue;
 
         const ackData = await ackRes.json();
-        console.log("ACK Data:", ackData); // 確認ログ追加
 
         if (ackData.ack === true) {
           ackReceived = true;
