@@ -15,11 +15,8 @@
     "@radix-ui/react-toggle": "^1.1.9",
     "amazon-cognito-identity-js": "^6.3.15",
     "aws-amplify": "^6.15.2",
-<<<<<<< HEAD
+    "axios": "^1.10.0",
     "chart.js": "^4.5.0",
-=======
-    "chart.js": "^4.4.9",
->>>>>>> 5665cd98cfb548a7af0684f6bda6e3a95f6ba550
     "chartjs-adapter-date-fns": "^3.0.0",
     "chartjs-plugin-zoom": "^2.2.0",
     "class-variance-authority": "^0.7.1",

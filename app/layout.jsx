@@ -78,11 +78,7 @@ function Navbar() {
                   <a href="/RadarChart">
                     <span className="material-symbols-outlined">pie_chart</span>レーダーチャート
                   </a>
-<<<<<<< HEAD
-                  {user.role === 'admin' && (
-=======
                   {user.role == 'admin' && (
->>>>>>> 5665cd98cfb548a7af0684f6bda6e3a95f6ba550
                     <a href="/register-slave">
                       <span className="material-symbols-outlined">devices_other</span>デバイス
                     </a>
@@ -90,29 +86,21 @@ function Navbar() {
                   <a href="/config-form">
                     <span className="material-symbols-outlined">settings_b_roll</span>ユーザ設定
                   </a>
-<<<<<<< HEAD
-                  {(user.role === 'user_csv' || user.role === 'admin') && (
+                  {(user.role === 'admin' || user.role === 'user_csv') && (
                     <a href="/HistoricalData">
                       <span className="material-symbols-outlined">history</span>有線 ver.
                     </a>
                   )}
-=======
-                  {(user.role === 'user_csv1' || user.role === 'admin') && (
-                    <>
-                      <a href="/HistoricalData/user_csv1">
-                        <span className="material-symbols-outlined">history</span>有線 ver.
-                      </a>
-                    </>
+                  {(user.role === 'admin' || user.role === 'user_csv1') && (
+                    <a href="/HistoricalData/user_csv1">
+                      <span className="material-symbols-outlined">history</span>有線 ver.
+                    </a>
                   )}
-                  {(user.role === 'user_csv2' || user.role === 'admin') && (
-                    <>
-                      <a href="/HistoricalData/user_csv2">
-                        <span className="material-symbols-outlined">history</span>有線 ver.
-                      </a>
-                    </>
+                  {(user.role === 'admin' || user.role === 'user_csv2') && (
+                    <a href="/HistoricalData/user_csv2">
+                      <span className="material-symbols-outlined">history</span>有線 ver.
+                    </a>
                   )}
-
->>>>>>> 5665cd98cfb548a7af0684f6bda6e3a95f6ba550
                 </div>
               )}
             </div>
@@ -127,8 +115,6 @@ function Navbar() {
     </div>
   );
 }
-
-
 export default function RootLayout({ children }) {
   return (
     <html lang="ja">
