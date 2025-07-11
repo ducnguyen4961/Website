@@ -15,7 +15,7 @@ export default function NewPasswordForm({ cognitoUser, userAttributes, onSuccess
       const idToken = localStorage.getItem('idToken');
       const loginTime = localStorage.getItem('loginTime');
       const now = Date.now();
-      const MAX_SESSION_DURATION = 24 * 60 * 60 * 1000;
+      const MAX_SESSION_DURATION = 10 * 60 * 60 * 1000;
       if (!idToken || !loginTime || now - parseInt(loginTime) > MAX_SESSION_DURATION) {
         localStorage.clear();
         router.push('/login');

@@ -23,7 +23,7 @@ export default function RegisterDevicePage() {
     const idToken = localStorage.getItem("idToken");
     const loginTime = localStorage.getItem("loginTime");
 
-    const MAX_SESSION_DURATION = 24 * 60 * 60 * 1000;
+    const MAX_SESSION_DURATION = 10 * 60 * 60 * 1000;
     const now = Date.now();
 
     if (!idToken || !loginTime ||isNaN(parseInt(loginTime)) || now - parseInt(loginTime) > MAX_SESSION_DURATION) {
@@ -43,21 +43,29 @@ export default function RegisterDevicePage() {
           },
         });
         const users = await res.json();
-        console.log("✅ Fetched users from API:", users);
         const emailToNameMap = {};
         const emailToUsernameMap = {};
         const uniqueEmails = [];
+        const devices = [];
         users.forEach((user) => {
           if (user.email && !emailToNameMap[user.email]) {
             uniqueEmails.push(user.email);
             emailToNameMap[user.email] = user.name || "";
             emailToUsernameMap[user.email] = user.username || "";
           }
+          if (user.slave_ids && user.house_device) {
+            user.slave_ids.forEach(id => {
+              devices.push({
+                user_name: user.name || "Unknown",
+                email: user.email,
+                device: user.house_device,
+                role: user.role || "user",
+                username: user.username || "Unknown",
+                slaveID: id
+              });
+            });
+          }
         });
-        console.log("✅ uniqueEmails:", uniqueEmails);
-        console.log("✅ emailToNameMap:", emailToNameMap);
-        console.log("✅ emailToUsernameMap:", emailToUsernameMap);
-
         setEmailList(uniqueEmails);
         setEmailToNameMap(emailToNameMap);
         setEmailToUsernameMap(emailToUsernameMap);
@@ -68,6 +76,7 @@ export default function RegisterDevicePage() {
           emailToNameMap,
           emailToUsernameMap
         }));
+        setRegisteredDevices(devices);
       } catch (err) {
         console.error("Cannot get list of users", err);
         const savedData = localStorage.getItem("userData");
@@ -77,16 +86,7 @@ export default function RegisterDevicePage() {
           setEmailToNameMap(emailToNameMap);
           setEmailToUsernameMap(emailToUsernameMap);
           setSelectedEmail(emails[0] || "");
-          setSelectedName(emailToNameMap[emails[0]] || "");
-          if (users.slave_ids && users.house_device) {
-            const fakeDevices = users.slave_ids.map(id => ({
-              user_name: emailToNameMap[uniqueEmails[0]] || "Unknown",
-              device: users.house_device,
-              role: users.role,
-              slaveID: id
-            }));
-            setRegisteredDevices(fakeDevices);
-          }
+          (emailToNameMap[emails[0]] || "");
         }
       }
     };
@@ -137,14 +137,13 @@ export default function RegisterDevicePage() {
   };
   return (
   <div className="register-page-wrapper">
-    <h2>Quản lý thiết bị</h2>
+    <h2>Device Management</h2>
 
     <div className="form-grid">
-      {/* 🔧 Phần đăng ký thiết bị */}
       <div className="form-section">
-        <h3>📥 Đăng ký thiết bị</h3>
+        <h3>Register devices</h3>
         <form onSubmit={handleSubmit} className="register-form">
-          <div>
+          <div className="input_house">
             <label>House Device</label>
             <input
               type="text"
@@ -184,10 +183,8 @@ export default function RegisterDevicePage() {
         {status && <p className="status-message">{status}</p>}
       </div>
 
-      {/* 🗑️ Phần xóa thiết bị */}
       <div className="form-section">
-        <h3>🗑️ Xóa thiết bị đã đăng ký</h3>
-        console.log("registeredDevices:", registeredDevices);
+        <h3>Delete a registered device</h3>
         <DeleteDeviceForm initialDevices={registeredDevices} />
       </div>
     </div>

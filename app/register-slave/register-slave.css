@@ -1,11 +1,15 @@
 .register-form-container {
   max-width: 500px;
-  margin: 40px auto;
+  margin: auto;
+  margin-top: 20px;
   padding: 24px;
   background-color: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   font-family: sans-serif;
+}
+.input_house {
+  margin-top: 30px;
 }
 
 .register-form-container h2 {
@@ -44,6 +48,7 @@
   border: none;
   border-radius: 6px;
   font-weight: 600;
+  margin-top: 25px;
   font-size: 15px;
   cursor: pointer;
   transition: background-color 0.2s ease;
@@ -71,7 +76,8 @@
 
 .form-section {
   background: #f9f9f9;
-  width:60%;
+  width:70%;
+  height:fit-content;
   margin:10%;
   padding: 1.5rem;
   border-radius: 8px;
