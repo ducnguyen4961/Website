@@ -47,7 +47,13 @@ export default function DashboardPage() {
       router.push('/login');
     }
   }, []);
-
+  useEffect(() => {
+    const houseDevicesMap = JSON.parse(localStorage.getItem("houseDevicesMap"));
+    if (houseDevicesMap) {
+      const houses = Object.keys(houseDevicesMap); // Lấy danh sách house
+      setListOfHouses(houses);
+    }
+  }, []);
   // 新しいデバイスの追加の場合には、ページをアクセスしてから、5分後にリロードしたら、新しいのが受けられる
   useEffect(() => {
     const token = localStorage.getItem("idToken");
@@ -70,7 +76,7 @@ export default function DashboardPage() {
       setRole(userRole);
       localStorage.setItem("userRole", userRole);
 
-      if (userRole === "admin") {
+      if (["admin", "user"].includes(role)) {
         const houseMap = data.house_devices || {};
         const houseKeys = Object.keys(houseMap);
         setListOfHouses(houseKeys);
@@ -78,14 +84,6 @@ export default function DashboardPage() {
         setSlaveid(houseMap[houseKeys[0]] || []);
         setDeviceSuffix(data.slave_ids || []); // ← 追加ここ！！
         localStorage.setItem("houseDevicesMap", JSON.stringify(houseMap));
-      } else {
-        const house = data.house_device || "";
-        const slaveIds = data.slave_ids || [];
-        setHouseId(house);
-        setSlaveid(slaveIds);
-        setDeviceSuffix(data.slave_ids || []); // ← 追加ここ！！
-        localStorage.setItem("house", house);
-        localStorage.setItem("slaveIds", JSON.stringify(slaveIds));
       }
     })
     .catch((err) => {
@@ -95,13 +93,12 @@ export default function DashboardPage() {
     });
   }, []);
   useEffect(() => {
-    if (role === "admin") {
+    if (["admin", "user"].includes(role)) {
       const houseDevicesMap = JSON.parse(localStorage.getItem("houseDevicesMap") || "{}");
       setSlaveid(houseDevicesMap[houseId] || []);
       setDeviceSuffix([]);
     }
   }, [houseId]);
-
 
   // ① 日付と deviceSuffix が揃ったら日付をセット
   useEffect(() => {
@@ -109,6 +106,8 @@ export default function DashboardPage() {
       const today = new Date().toISOString().split('T')[0];
       setStartDate(today);
       setEndDate(today);
+      const limitedSuffixes = deviceSuffix.slice(0, 2);
+      setDeviceSuffix(limitedSuffixes);
       setHasAutoFetched(true);
       setReadyToFetch(true);  // ← 次段階へ
     }
@@ -437,7 +436,6 @@ function ChartFieldMultiSelect({ fields, selected, onChange }) {
 return (
   <div className="fetch-data">
     {/* isSingleDay/!isSingleDayのみマルチプルセレクト対応 */}
-    {/* isSingleDay/!isSingleDayのみマルチプルセレクト対応 */}
     {(isSingleDay || (!isSingleDay && (data.hourly.length > 0 || data.daily.length > 0))) && (
       <>
         {/* 🔽 全選択・全解除ボタン */}
@@ -567,7 +565,7 @@ return (
 
        
       <form onSubmit={fetchData} id="filterForm">
-      {role === 'admin' ? (
+      {['admin', 'user'].includes(role) ? (
         <select
         value={houseId}
         onChange={e => setHouseId(e.target.value)}

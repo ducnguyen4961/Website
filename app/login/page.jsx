@@ -75,8 +75,7 @@ export default function LoginPage() {
         localStorage.setItem("idToken", idToken);
         localStorage.setItem("loginTime", Date.now().toString());
         localStorage.setItem("userRole", userInfo.role);
-        localStorage.setItem("house", userInfo.house_device);
-        localStorage.setItem("slaveIds", JSON.stringify(userInfo.slave_ids));
+        localStorage.setItem("houseDevicesMap", JSON.stringify(userInfo.house_devices || {}));
         if (userInfo.role === "admin") {
           localStorage.setItem("houseDevicesMap", JSON.stringify(userInfo.house_devices || {}));
         }
@@ -155,8 +154,7 @@ export default function LoginPage() {
         localStorage.setItem("idToken", idToken);
         localStorage.setItem("loginTime", Date.now().toString());
         localStorage.setItem("userRole", userInfo.role);
-        localStorage.setItem("house", userInfo.house_device);
-        localStorage.setItem("slaveIds", JSON.stringify(userInfo.slave_ids));
+        localStorage.setItem("houseDevicesMap", JSON.stringify(userInfo.house_devices || {}));
         if (userInfo.role === "admin") {
           localStorage.setItem("houseDevicesMap", JSON.stringify(userInfo.house_devices || {}));
           try {
@@ -207,8 +205,7 @@ export default function LoginPage() {
           localStorage.setItem("idToken", idToken);
           localStorage.setItem("loginTime", Date.now().toString());
           localStorage.setItem("userRole", userInfo.role);
-          localStorage.setItem("house", userInfo.house_device);
-          localStorage.setItem("slaveIds", JSON.stringify(userInfo.slave_ids));
+          localStorage.setItem("houseDevicesMap", JSON.stringify(userInfo.house_devices || {}));
 
           if (userInfo.role === "admin") {
             localStorage.setItem("houseDevicesMap", JSON.stringify(userInfo.house_devices || {}));

@@ -3,10 +3,25 @@ import './config-form.css';
 import { useRouter} from 'next/navigation';
 import { useState, useContext, useEffect } from 'react';
 import { AuthContext } from "@/context/Authcontext";
+import {handleSubmitRow,handleSubmitKabumaJoukan} from '@/components/kabu_jou';
+import {handleSubmitCO2,handleSubmitSelftest} from '@/components/calib_self';
+import {handleSubmitTemp} from '@/components/sekisan';
+import HouseConfigForm from "@/components/kabu_jou";
+import {CalibSelfForm} from "@/components/calib_self";
+import { SekisanTempForm } from "@/components/sekisan";
+
 
 export default function ConfigForm() {
   const router = useRouter();
   const { logout } = useContext(AuthContext);
+  const [deviceSuffix, setDeviceSuffix] = useState([]);
+  const [role, setRole] = useState('');
+  const [houseId, setHouseId] = useState('');
+  const [slaveid, setSlaveid] = useState([]); 
+  const [hasAutoFetched, setHasAutoFetched] = useState(false);
+  const [listOfHouses, setListOfHouses] = useState([]);
+  const deviceIdList = deviceSuffix.map(suffix => `${houseId}#${suffix}`);
+  
   const [rows, setRows] = useState(
     Array.from({ length: 3 }, () => ({
       house_device: '',
@@ -16,7 +31,6 @@ export default function ConfigForm() {
       base_temp: ''     // ← 追加
     }))
   );
-
 
   const [targetCO2s, setTargetCO2s] = useState(
     Array.from({ length: 3 }, () => ({ house_device: '', target_co2: '' }))
@@ -39,6 +53,25 @@ export default function ConfigForm() {
     SELFTEST: 1,
     RESTART: 2
   };
+  useEffect(() => {
+    if (role === "admin") {
+      const houseDevicesMap = JSON.parse(localStorage.getItem("houseDevicesMap") || "{}");
+      setSlaveid(houseDevicesMap[houseId] || []);
+      setDeviceSuffix([]);
+    }
+  }, [houseId]);
+
+
+  // ① 日付と deviceSuffix が揃ったら日付をセット
+  useEffect(() => {
+    if (!hasAutoFetched && houseId && deviceSuffix.length > 0) {
+      const today = new Date().toISOString().split('T')[0];
+      setStartDate(today);
+      setEndDate(today);
+      setHasAutoFetched(true);
+      setReadyToFetch(true);  // ← 次段階へ
+    }
+  }, [houseId, deviceSuffix]);
   useEffect(() => {
     const savedRows = localStorage.getItem('rows');
     const savedCO2s = localStorage.getItem('targetCO2s');
@@ -100,390 +133,62 @@ export default function ConfigForm() {
     const newCO2s = [...targetCO2s];
     newCO2s[index][field] = value;
     setTargetCO2s(newCO2s);
-  };
-  const handleSubmitRow = async (e) => {
-    e.preventDefault();
-    setMessage('送信中（距離情報）...');
-    try {
-      const validRows = rows.filter((r) => r.house_device);
-      await Promise.all(
-        validRows.map((row) =>
-          fetch('https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/query_data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'put',
-              house_device: row.house_device,
-              kuboma: row.kuboma,
-              jouma: row.jouma,
-            }),
-          })
-        )
-      );
-      setMessage('距離情報の更新が完了しました!');
-    } catch (err) {
-      console.error(err);
-      setMessage('距離情報の更新に失敗しました!');
-    }
-  };
-  const handlesubmitkabumajoukan = async (e) => {
-    e.preventDefault();
-    setMessage('現在値を取得中...');
-    
-    try {
-      const promises = currentDevice.map(async (device) => {
-        if (!device.house_device) return device;
-
-        const response = await fetch(
-          `https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/kabu_jou?device_id=${device.house_device}`
-        );
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        return {
-          ...device,
-          kuboma: data.kuboma || '',
-          jouma: data.jouma || ''
-        };
-      });
-
-      const results = await Promise.all(promises);
-      setCurrentDevice(results);
-      setMessage('現在値を取得しました');
-    } catch (error) {
-      console.error('Error:', error);
-      setMessage('現在値の取得に失敗しました');
-    }
-  };
-const handleSubmitCO2 = async (e) => {
-  e.preventDefault();
-  setMessage('送信中（CO₂制御）...');
-
-  const messages = [];
-  const validRows = targetCO2s.filter((r) => {
-    const value = parseFloat(r.target_co2);
-    return r.house_device && !isNaN(value);
-  });
-
-  for (const row of validRows) {
-    try {
-      // POST送信
-      const res = await fetch('https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/send_value', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          device: row.house_device,
-          target_co2: parseFloat(row.target_co2),
-          cmd: Command.CALB
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-
-      // ACK確認
-      let ackReceived = false;
-      let ackReturnVal = null;
-
-      for (let i = 0; i < 7; i++) {
-        await new Promise((r) => setTimeout(r, 700));
-        const ackRes = await fetch(`https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/send_value?device=${row.house_device}`);
-        if (!ackRes.ok) continue;
-
-        const ackData = await ackRes.json();
-
-        if (ackData.ack === true) {
-          ackReceived = true;
-          if (ackData.return_val !== undefined && ackData.return_val !== null) {
-            ackReturnVal = ackData.return_val;
-          }
-          break;
-        }
-      }
-
-      if (ackReceived) {
-        if (ackReturnVal !== null) {
-          messages.push(`✅ ${row.house_device}: キャリブレーションが完了しました。CO₂補正量　 ${ackReturnVal} 　ppm`);
-        } else {
-          messages.push(`✅ ${row.house_device}: キャリブレーションが完了しましたが、補正量データは取得できませんでした。`);
-        }
-      } else {
-        messages.push(`⚠️ ${row.house_device}: コマンドは送信されましたが、機器からの応答がありません。`);
-      }
-    } catch (err) {
-      messages.push(`❌ ${row.house_device}: エラー発生 (${err.message})`);
-      console.error("CO2送信エラー:", err);
-    }
-  }
-
-  setMessage(messages.join('\n'));
 };
-const handleSubmitSelftest = async (e) => {
-  e.preventDefault();
-  setMessage('送信中（セルフテスト）...');
-
-  const messages = [];
-  const validRows = targetCO2s.filter(r => r.house_device);
-
-  for (const row of validRows) {
-    try {
-
-
-      const res = await fetch('https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/send_value', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          device: row.house_device,
-          cmd: Command.SELFTEST
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-
-      // ACK確認（Lambda経由でack保存済み想定）
-      let ackReceived = false;
-      let ackReturnVal = null;
-
-      for (let i = 0; i < 7; i++) {
-        await new Promise((r) => setTimeout(r, 700));
-        const ackRes = await fetch(`https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/send_value?device=${row.house_device}`);
-        if (!ackRes.ok) continue;
-
-        const ackData = await ackRes.json();
-        console.log("ACK Data:", ackData);
-
-        if (ackData.ack === true) {
-          ackReceived = true;
-          if (ackData.return_val !== undefined && ackData.return_val !== null) {
-            ackReturnVal = ackData.return_val;
-          }
-          break;
-        }
-      }
-
-      if (ackReceived) {
-        if (ackReturnVal !== null) {
-          messages.push(`✅ ${row.house_device}: セルフテスト完了`);
-        } else {
-          messages.push(`✅ ${row.house_device}: セルフテスト完了、戻り値なし`);
-        }
-      } else {
-        messages.push(`⚠️ ${row.house_device}: 機器からの応答なし`);
-      }
-    } catch (err) {
-      messages.push(`❌ ${row.house_device}: エラー (${err.message})`);
-      console.error("SELFTEST送信エラー:", err);
-    }
-  }
-
-  setMessage(messages.join('\n'));
-};
-const handleSubmittemp = async (e) => {
-  e.preventDefault();
-  setMessage('送信中（積算温度設定）...');
-
-  try {
-    const validRows = rows.filter((r) => r.house_device && r.set_date && r.base_temp);
-
-    await Promise.all(
-      validRows.map((row) =>
-        fetch('https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/Accumulated_Temperature_query', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'put',
-            configs: [
-              {
-                house_device: row.house_device,
-                set_date: row.set_date,
-                base_temp: parseFloat(row.base_temp)
-              }
-            ]
-          }),
-        })
-      )
-    );
-
-    setMessage('積算温度の更新が完了しました!');
-  } catch (err) {
-    console.error(err);
-    setMessage('積算温度の更新に失敗しました!');
-  }
-};
-
   return (
-    <div className="config-container">
-      <h1 className="config-title">株間と条間を変更（ｃｍ）</h1>
-      <div className="form-container">
-        <form onSubmit={handleSubmitRow} className="config-form">
-          <div className="positioned-label">株間 　　　　　　　　　　　　条間</div>      
-          {rows.map((row, index) => (
-            <div key={index} className="config-row">
-              <input
-                type="text"
-                list="house-device-list"
-                placeholder="デバイスID"
-                value={row.house_device}
-                onChange={(e) => handleRowChange(index, 'house_device', e.target.value)}
-                className="config-input"
-              />
-              <input
-                type="number"
-                list="kuboma-list"
-                placeholder="株間 (cm)"
-                value={row.kuboma}
-                onChange={(e) => handleRowChange(index, 'kuboma', e.target.value)}
-                className="config-input"
-              />
-              <input
-                type="number"
-                list="jouma-list"
-                placeholder="条間 (cm)"
-                value={row.jouma}
-                onChange={(e) => handleRowChange(index, 'jouma', e.target.value)}
-                className="config-input"
-              />
-            </div>
-          ))}
-          <button type="submit" className="config-button">送信</button>
-        </form>
+  <div className="config-container">
+    {/* 株間と条間 設定 */}
+    <HouseConfigForm
+      rows={rows}
+      setRows={setRows}
+      role={role}
+      listOfHouses={listOfHouses}
+      slaveid={slaveid}
+      deviceSuffix={deviceSuffix}
+      setDeviceSuffix={setDeviceSuffix}
+      savedInputs={savedInputs}
+      setMessage={setMessage}
+    />
 
-      <form onSubmit={handlesubmitkabumajoukan} className="config-form">
-        <div className="positioned-label">株間 　　　　　　　　　　　　条間</div>  
-        {currentDevice.map((device, index) => (
-          <div key={index} className="config-row">
-            <input
-              type="text"
-              list="house-device-list"
-              placeholder="デバイスID"
-              value={device.house_device}
-              onChange={(e) => {
-                const newDevices = [...currentDevice];
-                newDevices[index] = { ...device, house_device: e.target.value };
-                setCurrentDevice(newDevices);
-              }}
-              className="config-input"
-            />
-            <input
-              type="text"
-              value={device.kuboma}
-              readOnly
-              placeholder="株間 (cm)"
-              className="config-input"
-            />
-            <input
-              type="text"
-              value={device.jouma}
-              readOnly
-              placeholder="条間 (cm)"
-              className="config-input"
-            />
-          </div>
-        ))}
-        <button type="submit" className="config-button">現在値を取得</button>
-      </form>
-      </div>
-      <h2 className="config-title">積算温度設定</h2>
-      <form onSubmit={handleSubmittemp} className="config-form">
-        {rows.map((row, index) => (
-          <div key={index} className="config-row">
-            <input
-              type="text"
-              list="house-device-list"
-              placeholder="デバイスID"
-              value={row.house_device}
-              onChange={(e) => handleRowChange(index, 'house_device', e.target.value)}
-              className="config-input"
-            />
-            <input
-              type="date"
-              placeholder="設定日"
-              value={row.set_date}
-              onChange={(e) => handleRowChange(index, 'set_date', e.target.value)}
-              className="config-input"
-            />
-            <input
-              type="number"
-              placeholder="基準温度 (℃)"
-              value={row.base_temp}
-              onChange={(e) => handleRowChange(index, 'base_temp', e.target.value)}
-              className="config-input"
-            />
-          </div>
-        ))}
-        <button type="submit" className="config-button">送信</button>
-      </form>
+    {/* CO₂ キャリブレーション & セルフテスト */}
+    <CalibSelfForm
+      targetCO2s={targetCO2s}
+      setTargetCO2s={setTargetCO2s}
+      setMessage={setMessage}
+      Command={Command}
+      handleSubmitCO2={handleSubmitCO2}
+      handleSubmitSelftest={handleSubmitSelftest}
+      
+    />
 
-      <h2 className="config-title">CO₂ キャリブレーション(校正)</h2>
-      <form onSubmit={handleSubmitCO2} className="config-form1">
-        {targetCO2s.map((row, index) => (
-          <div key={index} className="config1-row">
-            <input
-              type="text"
-              list="house-device-list"
-              placeholder="デバイスID"
-              value={row.house_device}
-              onChange={(e) => handleCO2Change(index, 'house_device', e.target.value)}
-              className="config1-input"
-              autoComplete="on"
-            />
-            <input
-              type="number"
-              placeholder="目標 CO₂ (ppm)"
-              value={row.target_co2}
-              onChange={(e) => handleCO2Change(index, 'target_co2', e.target.value)}
-              className="config2-input"
-              autoComplete="on"
-            />
-          </div>
-        ))}
-        <button type="submit" className="config-button">送信（CO₂）</button>
-      </form>
+    {/* 積算温度 設定 */}
+    <SekisanTempForm
+      rows={rows}
+      setRows={setRows}
+      setMessage={setMessage}
+      savedInputs={savedInputs}
+    />
 
-      <h2 className="config-title">セルフテスト実行</h2>
-      <form onSubmit={handleSubmitSelftest} className="config-form1">
-        {targetCO2s.map((row, index) => (
-          <div key={index} className="config1-row">
-            <input
-              type="text"
-              list="house-device-list"
-              placeholder="デバイスID"
-              value={row.house_device}
-              onChange={(e) => handleCO2Change(index, 'house_device', e.target.value)}
-              className="config1-input"
-              autoComplete="on"
-            />
-          </div>
-        ))}
-        <button type="submit" className="config-button">
-          セルフテスト実行
-        </button>
-      </form>
+    {/* メッセージ表示 */}
+    {message && <p className="config-message">{message}</p>}
 
-      {message && <p className="config-message">{message}</p>}
+    {/* datalist elements */}
+    <datalist id="house-device-list">
+      {savedInputs.house_device.map((value) => (
+        <option key={value} value={value} />
+      ))}
+    </datalist>
 
-      {/* datalist要素を追加 */}
-      <datalist id="house-device-list">
-        {savedInputs.house_device.map((value) => (
-          <option key={value} value={value} />
-        ))}
-      </datalist>
-      <datalist id="kuboma-list">
-        {savedInputs.kuboma.map((value) => (
-          <option key={value} value={value} />
-        ))}
-      </datalist>
-      <datalist id="jouma-list">
-        {savedInputs.jouma.map((value) => (
-          <option key={value} value={value} />
-        ))}
-      </datalist>
-    </div>
-  );
+    <datalist id="kuboma-list">
+      {savedInputs.kuboma.map((value) => (
+        <option key={value} value={value} />
+      ))}
+    </datalist>
+
+    <datalist id="jouma-list">
+      {savedInputs.jouma.map((value) => (
+        <option key={value} value={value} />
+      ))}
+    </datalist>
+  </div>
+);
 }

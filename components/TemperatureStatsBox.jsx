@@ -61,9 +61,9 @@ const TemperatureStatsBox = ({ deviceId, stats, houseId }) => {
         {Object.entries(safeStats.ranges).map(([label, rangeStats]) => (
           <div key={label} className="stat-box range-box">
             <div className="stat-label text-blue-700">{label.replace('_', '〜')} 時間</div>
-            <div><strong>Avg:</strong> {rangeStats.avg ?? '-'}°C</div>
-            <div><strong>Min:</strong> {rangeStats.min ?? '-'}°C</div>
-            <div><strong>Max:</strong> {rangeStats.max ?? '-'}°C</div>
+            <div><strong>Avg:</strong> {rangeStats.avg ?? '-'}</div>
+            <div><strong>Min:</strong> {rangeStats.min ?? '-'}</div>
+            <div><strong>Max:</strong> {rangeStats.max ?? '-'}</div>
           </div>
         ))}
       </div>
