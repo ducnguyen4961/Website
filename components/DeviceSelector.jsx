@@ -12,7 +12,7 @@ function DeviceSelector({ slaveid, selectedDevices, setSelectedDevices }) {
   if (!mounted) return null;
 
   return (
-    <div className="mb-4">
+    <div className="pick_device">
       <Select
         options={options}
         isMulti

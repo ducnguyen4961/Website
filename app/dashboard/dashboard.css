@@ -473,4 +473,6 @@ th, td {
   gap: 16px;
   justify-content: flex-start;
 }
-
+.pick_device, .filterForm{
+  height:100%;
+}

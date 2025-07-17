@@ -25,7 +25,7 @@ export default function DashboardPage() {
   const [aggItems, setAggItems] = useState([]);
   const [deviceSuffix, setDeviceSuffix] = useState([]);
   const [listOfHouses, setListOfHouses] = useState([]);
-  const [slaveid, setSlaveid] = useState([]); 
+  const [slaveid, setSlaveid] = useState({});
   const [role, setRole] = useState('');
   const [houseId, setHouseId] = useState('');
   const [showChart, setShowChart] = useState(false);
@@ -50,7 +50,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const houseDevicesMap = JSON.parse(localStorage.getItem("houseDevicesMap"));
     if (houseDevicesMap) {
-      const houses = Object.keys(houseDevicesMap); // Lấy danh sách house
+      const houses = Object.keys(houseDevicesMap);
       setListOfHouses(houses);
     }
   }, []);
@@ -81,7 +81,7 @@ export default function DashboardPage() {
         const houseKeys = Object.keys(houseMap);
         setListOfHouses(houseKeys);
         setHouseId(houseKeys[0] || "");
-        setSlaveid(houseMap[houseKeys[0]] || []);
+        setSlaveid(houseMap);
         setDeviceSuffix(data.slave_ids || []); // ← 追加ここ！！
         localStorage.setItem("houseDevicesMap", JSON.stringify(houseMap));
       }
@@ -95,24 +95,22 @@ export default function DashboardPage() {
   useEffect(() => {
     if (["admin", "user"].includes(role)) {
       const houseDevicesMap = JSON.parse(localStorage.getItem("houseDevicesMap") || "{}");
-      setSlaveid(houseDevicesMap[houseId] || []);
+      setSlaveid(houseDevicesMap);
       setDeviceSuffix([]);
     }
   }, [houseId]);
-
   // ① 日付と deviceSuffix が揃ったら日付をセット
   useEffect(() => {
-    if (!hasAutoFetched && houseId && deviceSuffix.length > 0) {
+    if (!hasAutoFetched && houseId && (slaveid[houseId]?.length > 0)) {
       const today = new Date().toISOString().split('T')[0];
       setStartDate(today);
       setEndDate(today);
-      const limitedSuffixes = deviceSuffix.slice(0, 2);
+      const limitedSuffixes = slaveid[houseId].slice(0, 3);
       setDeviceSuffix(limitedSuffixes);
       setHasAutoFetched(true);
-      setReadyToFetch(true);  // ← 次段階へ
+      setReadyToFetch(true);
     }
-  }, [houseId, deviceSuffix]);
-
+  }, [houseId, slaveid, hasAutoFetched]);
   // ② 日付がセットされたあとに fetchData を呼ぶ
   useEffect(() => {
     if (readyToFetch && startDate && endDate) {
@@ -121,7 +119,12 @@ export default function DashboardPage() {
       setReadyToFetch(false); // ← 一度だけ呼ばれるように
     }
   }, [readyToFetch, startDate, endDate]);
-
+  useEffect(() => {
+    if (role === 'user' && listOfHouses.length > 0 && !houseId) {
+      const firstHouse = listOfHouses[0];
+      setHouseId(firstHouse);
+    }
+  }, [role, listOfHouses]);
 
   const oldFields = [
     'timestamp', 'temperature', 'humidity', 'CO2',
@@ -204,6 +207,7 @@ export default function DashboardPage() {
         `https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/query_data?device_id=${encodedDeviceId}&start_timestamp=${adjustedStart}&end_timestamp=${adjustedEnd}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       const laiRes = await fetch(
         `https://rb1295a9k5.execute-api.ap-northeast-1.amazonaws.com/version2/sensor-data`,
         {
@@ -296,12 +300,15 @@ export default function DashboardPage() {
     return obj;  
   });
   const laiMap = new Map(
-    laiAreaData.map(item => [item.timestamp.split('#')[0], item.area_per_plant])
+    laiAreaData.map(item => [`${item.house_device}#${item.timestamp}`, item.area_per_plant])
   );
-  const mergedDaily = data.daily.map(item => ({
-        ...item,
-    area_per_plant: laiMap.get(item.timestamp.split('#')[0]) ?? null,
-  }));
+  const mergedDaily = data.daily.map(item => {
+    const key = `${item.house_device}#${item.timestamp}`;
+    return {
+      ...item,
+      area_per_plant: laiMap.get(key) ?? null,
+    };
+  });
   const newData = mergedDaily.map(item => {
     const obj = {};
     newFields.forEach(f => {
@@ -457,7 +464,7 @@ return (
           </button>
         </div>
 
-        {/* ✅ チャートフィールド選択UI */}
+        {/* チャートフィールド選択UI */}
         <ChartFieldMultiSelect
           fields={chartFieldList}
           selected={selectedFields}
@@ -562,9 +569,7 @@ return (
         ))}
       </div>
     )}
-
-       
-      <form onSubmit={fetchData} id="filterForm">
+    <form onSubmit={fetchData} className="filterForm">
       {['admin', 'user'].includes(role) ? (
         <select
         value={houseId}
@@ -585,7 +590,7 @@ return (
         />
         )}
       <DeviceSelector
-      slaveid={slaveid}
+      slaveid={slaveid[houseId] || []}
       selectedDevices={deviceSuffix}
       setSelectedDevices={setDeviceSuffix}
       />
@@ -630,7 +635,7 @@ return (
           <MultiTemperatureStats deviceIds={deviceIdList} houseId={houseId} />
           <div className="chart-grid">
             {Object.entries(groupedData).map(([deviceId, data]) => (
-              <SensorChart key={deviceId} data={data} deviceId={deviceId} />
+              <SensorChart key={deviceId} data={data} deviceId={deviceId} rawData={groupedRaw[deviceId] || []} isSingleDay={isSingleDay}/>
             ))}
           </div>
         </div>
